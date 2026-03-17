@@ -1,18 +1,11 @@
-[
-  {
-    "id": "EQ-001",
-    "name": "SCREEN Truepress Jet520HD",
-    "unit": "1",
-    "location": "Digital Color Room",
-    "serial": "",
-    "maintenance": []
-  },
-  {
-    "id": "EQ-002",
-    "name": "SCREEN Truepress Jet520HD",
-    "unit": "2",
-    "location": "Digital Color Room",
-    "serial": "",
-    "maintenance": []
-  }
-]
+equipment-tracker/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   └── script.js
+├── data/
+│   └── equipment.json
+└── images/
+    ├── QR_EQ-001.png
+    └── QR_EQ-002.png
