@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DIRECT MAIL DEPOT Equipment Tracker</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="login">
+  <h2>Enter Password</h2>
+  <input type="password" id="passwordInput" placeholder="Password">
+  <button onclick="checkPassword()">Login</button>
+</div>
+<div id="main" style="display:none;">
+  <h1 id="equipName"></h1>
+  <p>ID: <span id="equipID"></span></p>
+  <p>Unit: <span id="equipUnit"></span></p>
+  <p>Location: <span id="equipLocation"></span></p>
+  <p>Serial #: <input type="text" id="equipSerial"></p>
+  <h3>Maintenance Log</h3>
+  <ul id="maintenanceLog"></ul>
+  <input type="text" id="newTask" placeholder="New maintenance task">
+  <button onclick="addMaintenance()">Add Task</button>
+  <h3>Add New Equipment</h3>
+  <input type="text" id="newEquipName" placeholder="Equipment Name">
+  <input type="text" id="newEquipUnit" placeholder="Unit #">
+  <input type="text" id="newEquipLocation" placeholder="Location">
+  <button onclick="addEquipment()">Add Equipment</button>
+</div>
+<footer>
+  <p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
+</footer>
+<script src="js/script.js"></script>
+</body>
+</html>
