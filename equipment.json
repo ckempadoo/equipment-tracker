@@ -1,1 +1,18 @@
-body { font-family: Arial; margin:20px;} footer{text-align:center;margin-top:20px;}
+[
+  {
+    "id": "EQ-001",
+    "name": "SCREEN Truepress Jet520HD",
+    "unit": "1",
+    "location": "Digital Color Room",
+    "serial": "",
+    "maintenance": []
+  },
+  {
+    "id": "EQ-002",
+    "name": "SCREEN Truepress Jet520HD",
+    "unit": "2",
+    "location": "Digital Color Room",
+    "serial": "",
+    "maintenance": []
+  }
+]
