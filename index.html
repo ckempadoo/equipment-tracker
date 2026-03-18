@@ -5,12 +5,12 @@
 <title>DIRECT MAIL DEPOT Equipment Tracker</title>
 <style>
 body { font-family: Arial; margin:20px; }
-h1, h2, h3 { margin-bottom:5px; }
-#main { display:none; }
-input, button, select { padding:5px; margin:5px; }
-#equipmentList { margin-bottom:20px; }
-#newEquipModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
-#modalContent { background:white; padding:20px; margin:50px auto; width:300px; border-radius:8px; }
+h1,h2,h3{margin-bottom:5px;}
+#main{display:none;}
+input,button,select{padding:5px;margin:5px;}
+#equipmentList{margin-bottom:20px;}
+#newEquipModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);}
+#modalContent{background:white;padding:20px;margin:50px auto;width:300px;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -55,37 +55,39 @@ input, button, select { padding:5px; margin:5px; }
     <input id="newName" placeholder="Name"><br>
     <input id="newUnit" placeholder="Unit #"><br>
     <input id="newLocation" placeholder="Location"><br>
+    <input id="newSerial" placeholder="Serial #"><br>
     <button onclick="addEquipment()">Add</button>
     <button onclick="hideAddEquipment()">Cancel</button>
   </div>
 </div>
 
 <footer>
-  <p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
+<p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
 </footer>
 
+<!-- Firebase scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
-// Password
+// ---- CONFIGURE FIREBASE ----
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ---- PASSWORD ----
 const password="DMD2026";
 
-// Equipment data
-let data = {
-"EQ-001": {name:"SCREEN Truepress Jet520HD", unit:"1", location:"Digital Color Room", serial:"", log:[]},
-"EQ-002": {name:"SCREEN Truepress Jet520HD", unit:"2", location:"Digital Color Room", serial:"", log:[]},
-"EQ-003": {name:"Océ VarioStream 7450", unit:"1", location:"Laser Room", serial:"", log:[]},
-"EQ-004": {name:"Océ VarioStream 7450", unit:"2", location:"Laser Room", serial:"", log:[]},
-"EQ-005": {name:"Océ VarioStream 7450", unit:"3", location:"Laser Room", serial:"", log:[]},
-"EQ-006": {name:"Océ VarioStream 7450", unit:"4", location:"Laser Room", serial:"", log:[]},
-"EQ-007": {name:"Roll Cart", unit:"1", location:"Laser Room", serial:"", log:[]},
-"EQ-008": {name:"MCS Hawk", unit:"1", location:"Inkjet Room", serial:"", log:[]},
-"EQ-009": {name:"Videojet 4320", unit:"1", location:"Inkjet Room", serial:"", log:[]},
-"EQ-010": {name:"Videojet 4320", unit:"2", location:"Inkjet Room", serial:"", log:[]},
-"EQ-011": {name:"Videojet 4320", unit:"3", location:"Inkjet Room", serial:"", log:[]},
-"EQ-012": {name:"Videojet 4320", unit:"4", location:"Inkjet Room", serial:"", log:[]},
-// ... continue adding all equipment here up to EQ-080+
-};
+// ---- LOAD MACHINE DATA ----
+let data = {}; // will be populated from Firestore
 
-// Populate dropdown
 function populateDropdown(){
   const sel = document.getElementById("equipmentList");
   sel.innerHTML = '<option value="">--Select equipment--</option>';
@@ -94,7 +96,6 @@ function populateDropdown(){
   });
 }
 
-// Select equipment from dropdown or via URL
 function selectEquipment(id){
   if(!id) return;
   updateEquipment(id);
@@ -103,31 +104,47 @@ function selectEquipment(id){
   window.history.replaceState({}, '', url);
 }
 
+// ---- LOGIN ----
 function login(){
   if(document.getElementById("pw").value === password){
     document.getElementById("login").style.display="none";
     document.getElementById("main").style.display="block";
-    populateDropdown();
-    // Check if URL has ?eq=XX
-    const id = new URLSearchParams(window.location.search).get('eq') || Object.keys(data)[0];
-    updateEquipment(id);
+    loadAllMachines();
   } else alert("Wrong password");
 }
 
+// ---- LOAD ALL MACHINES FROM FIRESTORE ----
+function loadAllMachines(){
+  db.collection("machines").get().then(snapshot=>{
+    snapshot.forEach(doc=>{
+      data[doc.id] = doc.data();
+    });
+    populateDropdown();
+    const id = new URLSearchParams(window.location.search).get('eq') || Object.keys(data)[0];
+    updateEquipment(id);
+  });
+}
+
+// ---- UPDATE UI FOR SELECTED MACHINE ----
 function updateEquipment(id){
+  if(!data[id]){
+    // If machine doesn't exist, create placeholder
+    data[id] = {name:"New Machine", unit:"", location:"", serial:"", maintenance:[]};
+    db.collection("machines").doc(id).set(data[id]);
+  }
   const eq = data[id];
   document.getElementById("equipName").innerText = eq.name + " " + eq.unit;
-  document.getElementById("equipInfo").innerText = id + " | " + eq.location;
+  document.getElementById("equipInfo").innerText = id + " | " + eq.location + " | Serial: " + eq.serial;
   const log = document.getElementById("log");
   log.innerHTML="";
-  eq.log.forEach(x=>{
+  (eq.maintenance || []).forEach(x=>{
     const li=document.createElement("li");
     li.innerText=x;
     log.appendChild(li);
   });
 }
 
-// Add maintenance
+// ---- ADD MAINTENANCE ----
 function addTask(){
   const id = new URLSearchParams(window.location.search).get("eq") || Object.keys(data)[0];
   const eq = data[id];
@@ -135,13 +152,17 @@ function addTask(){
   const freeText = document.getElementById("taskInput").value;
   if(freeText) task = freeText;
   if(!task) return alert("Select or type a task");
-  eq.log.push(new Date().toLocaleString()+" - "+task);
-  document.getElementById("taskDropdown").selectedIndex = 0;
-  document.getElementById("taskInput").value="";
-  updateEquipment(id);
+  eq.maintenance = eq.maintenance || [];
+  eq.maintenance.push(new Date().toLocaleString()+" - "+task);
+  // save to Firestore
+  db.collection("machines").doc(id).set(eq).then(()=>{
+    document.getElementById("taskDropdown").selectedIndex=0;
+    document.getElementById("taskInput").value="";
+    updateEquipment(id);
+  });
 }
 
-// Add new equipment
+// ---- ADD NEW EQUIPMENT ----
 function showAddEquipment(){ document.getElementById("newEquipModal").style.display="block"; }
 function hideAddEquipment(){ document.getElementById("newEquipModal").style.display="none"; }
 
@@ -150,15 +171,20 @@ function addEquipment(){
   const name = document.getElementById("newName").value;
   const unit = document.getElementById("newUnit").value;
   const location = document.getElementById("newLocation").value;
+  const serial = document.getElementById("newSerial").value;
   if(!id || !name) return alert("ID and Name required");
-  data[id] = {name, unit, location, serial:"", log:[]};
-  hideAddEquipment();
-  populateDropdown();
-  selectEquipment(id);
-  document.getElementById("newID").value="";
-  document.getElementById("newName").value="";
-  document.getElementById("newUnit").value="";
-  document.getElementById("newLocation").value="";
+  const newEq = {name, unit, location, serial, maintenance:[]};
+  data[id]=newEq;
+  db.collection("machines").doc(id).set(newEq).then(()=>{
+    hideAddEquipment();
+    populateDropdown();
+    selectEquipment(id);
+    document.getElementById("newID").value="";
+    document.getElementById("newName").value="";
+    document.getElementById("newUnit").value="";
+    document.getElementById("newLocation").value="";
+    document.getElementById("newSerial").value="";
+  });
 }
 </script>
 
