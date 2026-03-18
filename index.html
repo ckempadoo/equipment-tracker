@@ -1,36 +1,166 @@
-<h3>Maintenance</h3>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DIRECT MAIL DEPOT Equipment Tracker</title>
+<style>
+body { font-family: Arial; margin:20px; }
+h1, h2, h3 { margin-bottom:5px; }
+#main { display:none; }
+input, button, select { padding:5px; margin:5px; }
+#equipmentList { margin-bottom:20px; }
+#newEquipModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
+#modalContent { background:white; padding:20px; margin:50px auto; width:300px; border-radius:8px; }
+</style>
+</head>
+<body>
 
-<select id="taskDropdown">
-  <option value="">--Select task--</option>
-  <option value="Clean Roll">Clean Roll</option>
-  <option value="Replace Ink">Replace Ink</option>
-  <option value="Inspect Print Head">Inspect Print Head</option>
-  <option value="Calibrate Machine">Calibrate Machine</option>
-</select>
+<h1>DIRECT MAIL DEPOT Equipment Tracker</h1>
 
-<input id="taskInput" placeholder="Or type your task">
-<button onclick="addTask()">Add</button>
+<div id="login">
+  <h2>Enter Password</h2>
+  <input type="password" id="pw" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-<ul id="log"></ul>
+<div id="main">
+  <h2>Equipment</h2>
+  <select id="equipmentList" onchange="selectEquipment(this.value)">
+    <option value="">--Select equipment--</option>
+  </select>
+  <button onclick="showAddEquipment()">Add New Equipment</button>
+
+  <h3 id="equipName"></h3>
+  <p id="equipInfo"></p>
+
+  <h3>Maintenance</h3>
+  <select id="taskDropdown">
+    <option value="">--Select task--</option>
+    <option value="Clean Roll">Clean Roll</option>
+    <option value="Replace Ink">Replace Ink</option>
+    <option value="Inspect Print Head">Inspect Print Head</option>
+    <option value="Calibrate Machine">Calibrate Machine</option>
+  </select>
+  <input id="taskInput" placeholder="Or type your task">
+  <button onclick="addTask()">Add</button>
+
+  <ul id="log"></ul>
+</div>
+
+<!-- Modal for adding new equipment -->
+<div id="newEquipModal">
+  <div id="modalContent">
+    <h3>Add New Equipment</h3>
+    <input id="newID" placeholder="ID (e.g. EQ-081)"><br>
+    <input id="newName" placeholder="Name"><br>
+    <input id="newUnit" placeholder="Unit #"><br>
+    <input id="newLocation" placeholder="Location"><br>
+    <button onclick="addEquipment()">Add</button>
+    <button onclick="hideAddEquipment()">Cancel</button>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
+</footer>
 
 <script>
-function addTask() {
-  const id = new URLSearchParams(window.location.search).get("eq") || "EQ-001";
-  const eq = data[id];
+// Password
+const password="DMD2026";
 
+// Equipment data
+let data = {
+"EQ-001": {name:"SCREEN Truepress Jet520HD", unit:"1", location:"Digital Color Room", serial:"", log:[]},
+"EQ-002": {name:"SCREEN Truepress Jet520HD", unit:"2", location:"Digital Color Room", serial:"", log:[]},
+"EQ-003": {name:"Océ VarioStream 7450", unit:"1", location:"Laser Room", serial:"", log:[]},
+"EQ-004": {name:"Océ VarioStream 7450", unit:"2", location:"Laser Room", serial:"", log:[]},
+"EQ-005": {name:"Océ VarioStream 7450", unit:"3", location:"Laser Room", serial:"", log:[]},
+"EQ-006": {name:"Océ VarioStream 7450", unit:"4", location:"Laser Room", serial:"", log:[]},
+"EQ-007": {name:"Roll Cart", unit:"1", location:"Laser Room", serial:"", log:[]},
+"EQ-008": {name:"MCS Hawk", unit:"1", location:"Inkjet Room", serial:"", log:[]},
+"EQ-009": {name:"Videojet 4320", unit:"1", location:"Inkjet Room", serial:"", log:[]},
+"EQ-010": {name:"Videojet 4320", unit:"2", location:"Inkjet Room", serial:"", log:[]},
+"EQ-011": {name:"Videojet 4320", unit:"3", location:"Inkjet Room", serial:"", log:[]},
+"EQ-012": {name:"Videojet 4320", unit:"4", location:"Inkjet Room", serial:"", log:[]},
+// ... continue adding all equipment here up to EQ-080+
+};
+
+// Populate dropdown
+function populateDropdown(){
+  const sel = document.getElementById("equipmentList");
+  sel.innerHTML = '<option value="">--Select equipment--</option>';
+  Object.keys(data).forEach(id=>{
+    sel.innerHTML += `<option value="${id}">${data[id].name} ${data[id].unit} (${id})</option>`;
+  });
+}
+
+// Select equipment from dropdown or via URL
+function selectEquipment(id){
+  if(!id) return;
+  updateEquipment(id);
+  const url = new URL(window.location);
+  url.searchParams.set('eq', id);
+  window.history.replaceState({}, '', url);
+}
+
+function login(){
+  if(document.getElementById("pw").value === password){
+    document.getElementById("login").style.display="none";
+    document.getElementById("main").style.display="block";
+    populateDropdown();
+    // Check if URL has ?eq=XX
+    const id = new URLSearchParams(window.location.search).get('eq') || Object.keys(data)[0];
+    updateEquipment(id);
+  } else alert("Wrong password");
+}
+
+function updateEquipment(id){
+  const eq = data[id];
+  document.getElementById("equipName").innerText = eq.name + " " + eq.unit;
+  document.getElementById("equipInfo").innerText = id + " | " + eq.location;
+  const log = document.getElementById("log");
+  log.innerHTML="";
+  eq.log.forEach(x=>{
+    const li=document.createElement("li");
+    li.innerText=x;
+    log.appendChild(li);
+  });
+}
+
+// Add maintenance
+function addTask(){
+  const id = new URLSearchParams(window.location.search).get("eq") || Object.keys(data)[0];
+  const eq = data[id];
   let task = document.getElementById("taskDropdown").value;
   const freeText = document.getElementById("taskInput").value;
-
-  // Use free-text if dropdown is empty
-  if (freeText) task = freeText;
-  if (!task) return alert("Select or type a task");
-
-  eq.log.push(new Date().toLocaleString() + " - " + task);
-
-  // Clear inputs
+  if(freeText) task = freeText;
+  if(!task) return alert("Select or type a task");
+  eq.log.push(new Date().toLocaleString()+" - "+task);
   document.getElementById("taskDropdown").selectedIndex = 0;
-  document.getElementById("taskInput").value = "";
+  document.getElementById("taskInput").value="";
+  updateEquipment(id);
+}
 
-  load(); // reload the log
+// Add new equipment
+function showAddEquipment(){ document.getElementById("newEquipModal").style.display="block"; }
+function hideAddEquipment(){ document.getElementById("newEquipModal").style.display="none"; }
+
+function addEquipment(){
+  const id = document.getElementById("newID").value;
+  const name = document.getElementById("newName").value;
+  const unit = document.getElementById("newUnit").value;
+  const location = document.getElementById("newLocation").value;
+  if(!id || !name) return alert("ID and Name required");
+  data[id] = {name, unit, location, serial:"", log:[]};
+  hideAddEquipment();
+  populateDropdown();
+  selectEquipment(id);
+  document.getElementById("newID").value="";
+  document.getElementById("newName").value="";
+  document.getElementById("newUnit").value="";
+  document.getElementById("newLocation").value="";
 }
 </script>
+
+</body>
+</html>
