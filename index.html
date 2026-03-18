@@ -1,6 +1,76 @@
-equipment-tracker/
-├── index.html
-├── css/
-├── js/
-├── data/
-└── images/
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Equipment Tracker</title>
+<style>
+body { font-family: Arial; text-align:center; margin:40px;}
+#main { display:none; }
+input, button { padding:10px; margin:5px; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h2>Enter Password</h2>
+  <input type="password" id="pw">
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="main">
+  <h1 id="name"></h1>
+  <p id="info"></p>
+
+  <h3>Maintenance</h3>
+  <ul id="log"></ul>
+
+  <input id="task" placeholder="Add maintenance">
+  <button onclick="add()">Add</button>
+</div>
+
+<footer>
+  <p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
+</footer>
+
+<script>
+const data = {
+  "EQ-001": {name:"SCREEN Truepress Jet520HD 1", location:"Digital Color Room", log:[]},
+  "EQ-002": {name:"SCREEN Truepress Jet520HD 2", location:"Digital Color Room", log:[]}
+};
+
+function login(){
+  if(document.getElementById("pw").value==="DMD2026"){
+    document.getElementById("login").style.display="none";
+    document.getElementById("main").style.display="block";
+    load();
+  } else alert("Wrong password");
+}
+
+function load(){
+  const id = new URLSearchParams(window.location.search).get("eq") || "EQ-001";
+  const eq = data[id];
+  document.getElementById("name").innerText = eq.name;
+  document.getElementById("info").innerText = id + " | " + eq.location;
+
+  const log = document.getElementById("log");
+  log.innerHTML="";
+  eq.log.forEach(x=>{
+    const li=document.createElement("li");
+    li.innerText=x;
+    log.appendChild(li);
+  });
+}
+
+function add(){
+  const id = new URLSearchParams(window.location.search).get("eq") || "EQ-001";
+  const val = document.getElementById("task").value;
+  if(val){
+    data[id].log.push(new Date().toLocaleString()+" - "+val);
+    load();
+    document.getElementById("task").value="";
+  }
+}
+</script>
+
+</body>
+</html>
