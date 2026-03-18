@@ -1,76 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Equipment Tracker</title>
-<style>
-body { font-family: Arial; text-align:center; margin:40px;}
-#main { display:none; }
-input, button { padding:10px; margin:5px; }
-</style>
-</head>
-<body>
+<h3>Maintenance</h3>
 
-<div id="login">
-  <h2>Enter Password</h2>
-  <input type="password" id="pw">
-  <button onclick="login()">Login</button>
-</div>
+<select id="taskDropdown">
+  <option value="">--Select task--</option>
+  <option value="Clean Roll">Clean Roll</option>
+  <option value="Replace Ink">Replace Ink</option>
+  <option value="Inspect Print Head">Inspect Print Head</option>
+  <option value="Calibrate Machine">Calibrate Machine</option>
+</select>
 
-<div id="main">
-  <h1 id="name"></h1>
-  <p id="info"></p>
+<input id="taskInput" placeholder="Or type your task">
+<button onclick="addTask()">Add</button>
 
-  <h3>Maintenance</h3>
-  <ul id="log"></ul>
-
-  <input id="task" placeholder="Add maintenance">
-  <button onclick="add()">Add</button>
-</div>
-
-<footer>
-  <p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
-</footer>
+<ul id="log"></ul>
 
 <script>
-const data = {
-  "EQ-001": {name:"SCREEN Truepress Jet520HD 1", location:"Digital Color Room", log:[]},
-  "EQ-002": {name:"SCREEN Truepress Jet520HD 2", location:"Digital Color Room", log:[]}
-};
-
-function login(){
-  if(document.getElementById("pw").value==="DMD2026"){
-    document.getElementById("login").style.display="none";
-    document.getElementById("main").style.display="block";
-    load();
-  } else alert("Wrong password");
-}
-
-function load(){
+function addTask() {
   const id = new URLSearchParams(window.location.search).get("eq") || "EQ-001";
   const eq = data[id];
-  document.getElementById("name").innerText = eq.name;
-  document.getElementById("info").innerText = id + " | " + eq.location;
 
-  const log = document.getElementById("log");
-  log.innerHTML="";
-  eq.log.forEach(x=>{
-    const li=document.createElement("li");
-    li.innerText=x;
-    log.appendChild(li);
-  });
-}
+  let task = document.getElementById("taskDropdown").value;
+  const freeText = document.getElementById("taskInput").value;
 
-function add(){
-  const id = new URLSearchParams(window.location.search).get("eq") || "EQ-001";
-  const val = document.getElementById("task").value;
-  if(val){
-    data[id].log.push(new Date().toLocaleString()+" - "+val);
-    load();
-    document.getElementById("task").value="";
-  }
+  // Use free-text if dropdown is empty
+  if (freeText) task = freeText;
+  if (!task) return alert("Select or type a task");
+
+  eq.log.push(new Date().toLocaleString() + " - " + task);
+
+  // Clear inputs
+  document.getElementById("taskDropdown").selectedIndex = 0;
+  document.getElementById("taskInput").value = "";
+
+  load(); // reload the log
 }
 </script>
-
-</body>
-</html>
