@@ -139,7 +139,7 @@ input, select {
 <script>
 const password="DMD2026";
 let currentUser="";
-let data={
+let data = {};
   "EQ-001":{name:"SCREEN Truepress Jet520HD",unit:"1",maintenance:[],serviceIntervalDays:30},
   "EQ-002":{name:"SCREEN Truepress Jet520HD",unit:"2",maintenance:[],serviceIntervalDays:30}
 };
@@ -160,7 +160,22 @@ function login(){
     document.getElementById("login").style.display = "none";
     document.getElementById("main").style.display = "block";
 
-    loadMachines();
+    function loadMachines(){
+  db.collection("machines").get().then(snapshot=>{
+    data = {};
+
+    snapshot.forEach(doc=>{
+      data[doc.id] = doc.data();
+    });
+
+    populateDropdown();
+    buildDashboard();
+    buildAlerts();
+
+    const first = Object.keys(data)[0];
+    if(first) selectEquipment(first);
+  });
+}
   } else {
     alert("Wrong password");
   }
@@ -207,8 +222,11 @@ function getStatus(eq){
 }
 
 function addTask(){
-  let task=taskDropdown.value || taskInput.value;
-  if(!task) return;
+  db.collection("machines").doc(currentID).set(data[currentID]).then(()=>{
+  selectEquipment(currentID);
+  buildDashboard();
+  buildAlerts();
+});
 
   let type=document.getElementById("type").value;
 
