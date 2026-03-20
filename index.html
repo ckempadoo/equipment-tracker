@@ -1,208 +1,247 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<meta charset="UTF-8">
+<title>DMD Equipment Tracker</title>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
 (function(){
-  emailjs.init("ckempadoo@directmaildepot.com");
+  emailjs.init("YOUR_PUBLIC_KEY"); // replace later
 })();
 </script>
-<meta charset="UTF-8">
-<title>DIRECT MAIL DEPOT Equipment Tracker</title>
+
 <style>
-body { font-family: Arial; margin:20px; }
-h1,h2,h3{margin-bottom:5px;}
-#main{display:none;}
-input,button,select{padding:5px;margin:5px;}
-  <input id="emailTo" placeholder="Enter email(s) - separate with commas">
-<button onclick="sendEmailAlerts()">📧 Send Alerts</button>
-#equipmentList{margin-bottom:20px;}
-#newEquipModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);}
-#modalContent{background:white;padding:20px;margin:50px auto;width:300px;border-radius:8px;}
+body { font-family: Arial; margin:0; background:#f4f6f8; }
+
+.header {
+  display:flex; align-items:center; gap:15px;
+  background:#1f2937; color:white; padding:15px;
+}
+
+.header img { height:50px; }
+
+.container { padding:20px; }
+
+.card {
+  background:white; padding:15px; margin-bottom:15px;
+  border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+button {
+  padding:8px 12px; border:none; border-radius:6px;
+  background:#2563eb; color:white; cursor:pointer;
+}
+
+input, select {
+  padding:8px; margin:5px;
+  border-radius:6px; border:1px solid #ccc;
+}
+
+.dash-box {
+  flex:1; min-width:120px;
+  padding:15px; border-radius:10px;
+  color:white; font-weight:bold; text-align:center;
+}
+
+.overdue { background:#dc2626; }
+.soon { background:#f59e0b; }
+.ok { background:#16a34a; }
+
+.status-ok { color:green; font-weight:bold; }
+.status-soon { color:orange; font-weight:bold; }
+.status-overdue { color:red; font-weight:bold; }
 </style>
 </head>
+
 <body>
 
-<h1>DIRECT MAIL DEPOT Equipment Tracker</h1>
+<div class="header">
+  <img src="images/logo.png">
+  <h2>DIRECT MAIL DEPOT Equipment Tracker</h2>
+</div>
 
-<div id="login">
-  <h2>Enter Password</h2>
-  <input type="password" id="pw" placeholder="Password">
+<div class="container">
+
+<!-- LOGIN -->
+<div id="login" class="card">
+  <h3>Login</h3>
+  <input id="username" placeholder="Your Name">
+  <input id="pw" type="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
 
-<div id="main">
-  <h2>Equipment</h2>
-  <select id="equipmentList" onchange="selectEquipment(this.value)">
-    <option value="">--Select equipment--</option>
-  </select>
-  <button onclick="showAddEquipment()">Add New Equipment</button>
+<!-- MAIN -->
+<div id="main" style="display:none;">
 
-  <h3 id="equipName"></h3>
-  <p id="equipInfo"></p>
-
-  <h3>Maintenance</h3>
-  <select id="taskDropdown">
-    <option value="">--Select task--</option>
-    <option value="Clean Roll">Clean Roll</option>
-    <option value="Replace Ink">Replace Ink</option>
-    <option value="Inspect Print Head">Inspect Print Head</option>
-    <option value="Calibrate Machine">Calibrate Machine</option>
-  </select>
-  <input id="taskInput" placeholder="Or type your task">
-  <button onclick="addTask()">Add</button>
-
-  <ul id="log"></ul>
-</div>
-
-<!-- Modal for adding new equipment -->
-<div id="newEquipModal">
-  <div id="modalContent">
-    <h3>Add New Equipment</h3>
-    <input id="newID" placeholder="ID (e.g. EQ-081)"><br>
-    <input id="newName" placeholder="Name"><br>
-    <input id="newUnit" placeholder="Unit #"><br>
-    <input id="newLocation" placeholder="Location"><br>
-    <input id="newSerial" placeholder="Serial #"><br>
-    <button onclick="addEquipment()">Add</button>
-    <button onclick="hideAddEquipment()">Cancel</button>
+<div class="card">
+  <h3>Dashboard</h3>
+  <div style="display:flex; gap:10px;">
+    <div id="boxOverdue" class="dash-box overdue"></div>
+    <div id="boxSoon" class="dash-box soon"></div>
+    <div id="boxOk" class="dash-box ok"></div>
   </div>
 </div>
 
-<footer>
-<p>© 2026 Clifford A. Kempadoo<br>DIRECT MAIL DEPOT</p>
-</footer>
+<div class="card">
+  <h3>⚠️ Alerts</h3>
+  <ul id="alertsList"></ul>
+</div>
 
-<!-- Firebase scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div class="card">
+  <h3>Equipment</h3>
+  <select id="equipmentList" onchange="selectEquipment(this.value)"></select>
+</div>
+
+<div class="card">
+  <h3 id="equipName"></h3>
+  <p id="equipInfo"></p>
+  <p id="serviceInfo"></p>
+</div>
+
+<div class="card">
+  <h3>Maintenance</h3>
+
+  <select id="type">
+    <option value="Maintenance">Maintenance</option>
+    <option value="Repair">Repair</option>
+    <option value="PM">PM</option>
+  </select>
+
+  <select id="taskDropdown">
+    <option value="">Select task</option>
+    <option value="Clean Roll">Clean Roll</option>
+    <option value="Replace Ink">Replace Ink</option>
+  </select>
+
+  <input id="taskInput" placeholder="Or type your task">
+  <button onclick="addTask()">Add</button>
+</div>
+
+<div class="card">
+  <h3>Maintenance Log</h3>
+  <ul id="log"></ul>
+</div>
+
+<div class="card">
+  <h3>Email Alerts</h3>
+  <input id="emailTo" placeholder="Enter email(s)">
+  <button onclick="sendEmailAlerts()">📧 Send Alerts</button>
+</div>
+
+</div>
+
+<p style="text-align:center;">© 2026 Clifford A. Kempadoo - DIRECT MAIL DEPOT</p>
+
+</div>
 
 <script>
-// ---- CONFIGURE FIREBASE ----
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// ---- PASSWORD ----
 const password="DMD2026";
+let currentUser="";
+let data={
+  "EQ-001":{name:"SCREEN Truepress Jet520HD",unit:"1",maintenance:[],serviceIntervalDays:30},
+  "EQ-002":{name:"SCREEN Truepress Jet520HD",unit:"2",maintenance:[],serviceIntervalDays:30}
+};
+let currentID="EQ-001";
 
-// ---- LOAD MACHINE DATA ----
-let data = {}; // will be populated from Firestore
+function login(){
+  currentUser=username.value;
+  if(pw.value===password){
+    login.style.display="none";
+    main.style.display="block";
+    loadMachines();
+  } else alert("Wrong password");
+}
+
+function loadMachines(){
+  populateDropdown();
+  buildDashboard();
+  buildAlerts();
+  selectEquipment(currentID);
+}
 
 function populateDropdown(){
-  const sel = document.getElementById("equipmentList");
-  sel.innerHTML = '<option value="">--Select equipment--</option>';
+  equipmentList.innerHTML="";
   Object.keys(data).forEach(id=>{
-    sel.innerHTML += `<option value="${id}">${data[id].name} ${data[id].unit} (${id})</option>`;
+    equipmentList.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
   });
 }
 
 function selectEquipment(id){
-  if(!id) return;
-  updateEquipment(id);
-  const url = new URL(window.location);
-  url.searchParams.set('eq', id);
-  window.history.replaceState({}, '', url);
-}
+  currentID=id;
+  let eq=data[id];
 
-// ---- LOGIN ----
-function login(){
-  if(document.getElementById("pw").value === password){
-    document.getElementById("login").style.display="none";
-    document.getElementById("main").style.display="block";
-    loadAllMachines();
-  } else alert("Wrong password");
-}
+  equipName.innerText=eq.name+" "+eq.unit;
+  equipInfo.innerText=id+" | Location: "+(eq.location||"-")+" | Serial: "+(eq.serial||"-");
 
-// ---- LOAD ALL MACHINES FROM FIRESTORE ----
-function loadAllMachines(){
-  db.collection("machines").get().then(snapshot=>{
-    snapshot.forEach(doc=>{
-      data[doc.id] = doc.data();
-    });
-    populateDropdown();
-    const id = new URLSearchParams(window.location.search).get('eq') || Object.keys(data)[0];
-    updateEquipment(id);
-  });
-}
+  let status=getStatus(eq);
+  let cls="status-ok";
+  if(status==="OVERDUE") cls="status-overdue";
+  else if(status==="DUE SOON") cls="status-soon";
 
-// ---- UPDATE UI FOR SELECTED MACHINE ----
-function updateEquipment(id){
-  if(!data[id]){
-    // If machine doesn't exist, create placeholder
-    data[id] = {name:"New Machine", unit:"", location:"", serial:"", maintenance:[]};
-    db.collection("machines").doc(id).set(data[id]);
-  }
-  const eq = data[id];
-  document.getElementById("equipName").innerText = eq.name + " " + eq.unit;
-  document.getElementById("equipInfo").innerText = id + " | " + eq.location + " | Serial: " + eq.serial;
-  const log = document.getElementById("log");
+  serviceInfo.innerHTML=`Status: <span class="${cls}">${status}</span>`;
+
   log.innerHTML="";
-  (eq.maintenance || []).forEach(x=>{
-    const li=document.createElement("li");
-    li.innerText=x;
-    log.appendChild(li);
-  });
+  eq.maintenance.forEach(x=> log.innerHTML+=`<li>${x}</li>`);
 }
 
-// ---- ADD MAINTENANCE ----
+function getStatus(eq){
+  if(!eq.nextServiceDue) return "OK";
+  let diff=(new Date(eq.nextServiceDue)-new Date())/(1000*60*60*24);
+  if(diff<0) return "OVERDUE";
+  if(diff<5) return "DUE SOON";
+  return "OK";
+}
+
 function addTask(){
-  const id = new URLSearchParams(window.location.search).get("eq") || Object.keys(data)[0];
-  const eq = data[id];
-  let task = document.getElementById("taskDropdown").value;
-  const freeText = document.getElementById("taskInput").value;
-  if(freeText) task = freeText;
-  if(!task) return alert("Select or type a task");
-  eq.maintenance = eq.maintenance || [];
-  eq.maintenance.push(new Date().toLocaleString()+" - "+task);
-  // save to Firestore
-  db.collection("machines").doc(id).set(eq).then(()=>{
-    document.getElementById("taskDropdown").selectedIndex=0;
-    document.getElementById("taskInput").value="";
-    updateEquipment(id);
+  let task=taskDropdown.value || taskInput.value;
+  if(!task) return;
+
+  let type=document.getElementById("type").value;
+
+  data[currentID].maintenance.push(
+    `[${type}] ${task} | ${new Date().toLocaleString()} | ${currentUser}`
+  );
+
+  let next=new Date();
+  next.setDate(next.getDate()+30);
+  data[currentID].nextServiceDue=next.toISOString().split("T")[0];
+
+  selectEquipment(currentID);
+  buildDashboard();
+  buildAlerts();
+}
+
+function buildDashboard(){
+  let o=0,s=0,k=0;
+  Object.values(data).forEach(eq=>{
+    let st=getStatus(eq);
+    if(st==="OVERDUE") o++;
+    else if(st==="DUE SOON") s++;
+    else k++;
+  });
+
+  boxOverdue.innerText="❌ Overdue\n"+o;
+  boxSoon.innerText="⚠️ Soon\n"+s;
+  boxOk.innerText="✅ OK\n"+k;
+}
+
+function buildAlerts(){
+  alertsList.innerHTML="";
+  Object.keys(data).forEach(id=>{
+    let st=getStatus(data[id]);
+    if(st!=="OK"){
+      alertsList.innerHTML+=`<li>${id} - ${data[id].name} → ${st}</li>`;
+    }
   });
 }
 
-// ---- ADD NEW EQUIPMENT ----
-function showAddEquipment(){ document.getElementById("newEquipModal").style.display="block"; }
-function hideAddEquipment(){ document.getElementById("newEquipModal").style.display="none"; }
-
-function addEquipment(){
-  const id = document.getElementById("newID").value;
-  const name = document.getElementById("newName").value;
-  const unit = document.getElementById("newUnit").value;
-  const location = document.getElementById("newLocation").value;
-  const serial = document.getElementById("newSerial").value;
-  if(!id || !name) return alert("ID and Name required");
-  const newEq = {name, unit, location, serial, maintenance:[]};
-  data[id]=newEq;
-  db.collection("machines").doc(id).set(newEq).then(()=>{
-    hideAddEquipment();
-    populateDropdown();
-    selectEquipment(id);
-    document.getElementById("newID").value="";
-    document.getElementById("newName").value="";
-    document.getElementById("newUnit").value="";
-    document.getElementById("newLocation").value="";
-    document.getElementById("newSerial").value="";
-  });
-}
-<script>
-
-...your existing code...
-
+// TEST EMAIL BUTTON
 function sendEmailAlerts(){
-  alert("Button is working!");
+  alert("Email button working ✅");
 }
-
 </script>
 
-
 </body>
+</html>
