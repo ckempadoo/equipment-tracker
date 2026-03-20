@@ -146,12 +146,24 @@ let data={
 let currentID="EQ-001";
 
 function login(){
-  currentUser=username.value;
-  if(pw.value===password){
-    login.style.display="none";
-    main.style.display="block";
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("pw").value;
+
+  if(!user){
+    alert("Enter your name");
+    return;
+  }
+
+  if(pass === password){
+    currentUser = user;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("main").style.display = "block";
+
     loadMachines();
-  } else alert("Wrong password");
+  } else {
+    alert("Wrong password");
+  }
 }
 
 function loadMachines(){
