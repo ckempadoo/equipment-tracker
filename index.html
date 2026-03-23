@@ -225,9 +225,17 @@ function getStatus(eq){
   return "OK";
 }  
 function buildAlerts(){
-  document.getElementById("alertsList").innerHTML="<li>No alerts yet</li>";
-}
+  alertsList.innerHTML="";
 
+  Object.keys(data).forEach(id=>{
+    const eq=data[id];
+    const st=getStatus(eq);
+
+    if(st!=="OK"){
+      alertsList.innerHTML+=`<li>${id} - ${eq.name} ${eq.unit} → ${st}</li>`;
+    }
+  });
+}
 function seedMachines(){
 
 const machines = {
