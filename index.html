@@ -215,6 +215,15 @@ function buildDashboard(){
   boxOk.innerText="✅ OK\n"+k;
 }
 
+function getStatus(eq){
+  if(!eq.nextServiceDue) return "OK";
+
+  let diff=(new Date(eq.nextServiceDue)-new Date())/(1000*60*60*24);
+
+  if(diff<0) return "OVERDUE";
+  if(diff<5) return "DUE SOON";
+  return "OK";
+}  
 function buildAlerts(){
   document.getElementById("alertsList").innerHTML="<li>No alerts yet</li>";
 }
