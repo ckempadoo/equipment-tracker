@@ -210,10 +210,39 @@ function buildAlerts(){
 }
 
 function seedMachines(){
-  const machines={
-    "EQ-001":{name:"SCREEN Truepress Jet520HD",unit:"1",maintenance:[]},
-    "EQ-002":{name:"SCREEN Truepress Jet520HD",unit:"2",maintenance:[]}
-  };
+
+const machines = {
+
+"EQ-001": {name:"SCREEN Truepress Jet520HD",unit:"1",location:"Digital Color Room",maintenance:[],serviceIntervalDays:30},
+"EQ-002": {name:"SCREEN Truepress Jet520HD",unit:"2",location:"Digital Color Room",maintenance:[],serviceIntervalDays:30},
+
+"EQ-003": {name:"Océ VarioStream 7450",unit:"1",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
+"EQ-004": {name:"Océ VarioStream 7450",unit:"2",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
+"EQ-005": {name:"Océ VarioStream 7450",unit:"3",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
+"EQ-006": {name:"Océ VarioStream 7450",unit:"4",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
+
+"EQ-007": {name:"MCS Hawk",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+
+"EQ-008": {name:"Videojet 4320",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+"EQ-009": {name:"Videojet 4320",unit:"2",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+"EQ-010": {name:"Videojet 4320",unit:"3",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+"EQ-011": {name:"Videojet 4320",unit:"4",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+
+"EQ-012": {name:"MSE Roll-fed Inserter",unit:"1",location:"Inserting",maintenance:[],serviceIntervalDays:30},
+"EQ-013": {name:"MSE Roll-fed Inserter",unit:"2",location:"Inserting",maintenance:[],serviceIntervalDays:30},
+
+"EQ-014": {name:"Flowmaster RS Inserter",unit:"1",location:"Inserting",maintenance:[],serviceIntervalDays:30},
+"EQ-015": {name:"Flowmaster RS Inserter",unit:"2",location:"Inserting",maintenance:[],serviceIntervalDays:30},
+"EQ-016": {name:"Flowmaster RS Inserter",unit:"3",location:"Inserting",maintenance:[],serviceIntervalDays:30}
+
+};
+
+Object.keys(machines).forEach(id=>{
+  db.collection("machines").doc(id).set(machines[id]);
+});
+
+alert("ALL equipment loaded!");
+}
 
   Object.keys(machines).forEach(id=>{
     db.collection("machines").doc(id).set(machines[id]);
