@@ -26,11 +26,8 @@ const db = firebase.firestore();
 body { font-family: Arial; margin:0; background:#f4f6f8; }
 
 .header {
-  display:flex; align-items:center; gap:15px;
   background:#1f2937; color:white; padding:15px;
 }
-
-.header img { height:50px; }
 
 .container { padding:20px; }
 
@@ -50,9 +47,11 @@ input, select {
 }
 
 .dash-box {
-  flex:1; min-width:120px;
-  padding:15px; border-radius:10px;
-  color:white; font-weight:bold; text-align:center;
+  flex:1;
+  padding:15px;
+  border-radius:10px;
+  color:white;
+  text-align:center;
 }
 
 .overdue { background:#dc2626; }
@@ -69,7 +68,6 @@ input, select {
 
 <div class="container">
 
-<!-- LOGIN -->
 <div id="login" class="card">
   <h3>Login</h3>
   <input id="username" placeholder="Your Name">
@@ -77,7 +75,6 @@ input, select {
   <button onclick="login()">Login</button>
 </div>
 
-<!-- MAIN -->
 <div id="main" style="display:none;">
 
 <div class="card">
@@ -117,7 +114,8 @@ input, select {
 
 <div class="card">
   <h3>Setup</h3>
-  <button onclick="seedMachines()">Load Machines</button>
+  <button onclick="seedMachines()">Load ALL Equipment</button>
+  <button onclick="sendEmailAlerts()">Test Email Alerts</button>
 </div>
 
 </div>
@@ -149,10 +147,7 @@ function login(){
 function loadMachines(){
   db.collection("machines").get().then(snapshot=>{
     data={};
-
-    snapshot.forEach(doc=>{
-      data[doc.id]=doc.data();
-    });
+    snapshot.forEach(doc=>{ data[doc.id]=doc.data(); });
 
     populateDropdown();
     buildDashboard();
@@ -166,7 +161,6 @@ function loadMachines(){
 function populateDropdown(){
   const list=document.getElementById("equipmentList");
   list.innerHTML="";
-
   Object.keys(data).forEach(id=>{
     list.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
   });
@@ -177,7 +171,7 @@ function selectEquipment(id){
   const eq=data[id];
 
   document.getElementById("equipName").innerText=eq.name+" "+eq.unit;
-  document.getElementById("equipInfo").innerText=id;
+  document.getElementById("equipInfo").innerText=id+" | "+(eq.location||"");
 
   const log=document.getElementById("log");
   log.innerHTML="";
@@ -194,25 +188,15 @@ function addTask(){
     task+" | "+new Date().toLocaleString()+" | "+currentUser
   );
 
+  let next=new Date();
+  next.setDate(next.getDate()+30);
+  data[currentID].nextServiceDue=next.toISOString().split("T")[0];
+
   db.collection("machines").doc(currentID).set(data[currentID]).then(()=>{
     selectEquipment(currentID);
+    buildDashboard();
+    buildAlerts();
   });
-}
-
-function buildDashboard(){
-  let o=0,s=0,k=0;
-
-  Object.values(data).forEach(eq=>{
-    const st=getStatus(eq);
-
-    if(st==="OVERDUE") o++;
-    else if(st==="DUE SOON") s++;
-    else k++;
-  });
-
-  boxOverdue.innerText="❌ Overdue\n"+o;
-  boxSoon.innerText="⚠️ Soon\n"+s;
-  boxOk.innerText="✅ OK\n"+k;
 }
 
 function getStatus(eq){
@@ -223,44 +207,63 @@ function getStatus(eq){
   if(diff<0) return "OVERDUE";
   if(diff<5) return "DUE SOON";
   return "OK";
-}  
+}
+
+function buildDashboard(){
+  let o=0,s=0,k=0;
+
+  Object.values(data).forEach(eq=>{
+    let st=getStatus(eq);
+    if(st==="OVERDUE") o++;
+    else if(st==="DUE SOON") s++;
+    else k++;
+  });
+
+  boxOverdue.innerText="Overdue: "+o;
+  boxSoon.innerText="Due Soon: "+s;
+  boxOk.innerText="OK: "+k;
+}
+
 function buildAlerts(){
   alertsList.innerHTML="";
-
   Object.keys(data).forEach(id=>{
-    const eq=data[id];
-    const st=getStatus(eq);
-
+    let st=getStatus(data[id]);
     if(st!=="OK"){
-      alertsList.innerHTML+=`<li>${id} - ${eq.name} ${eq.unit} → ${st}</li>`;
+      alertsList.innerHTML+=`<li>${id} - ${data[id].name} ${data[id].unit} → ${st}</li>`;
     }
   });
 }
+
+function sendEmailAlerts(){
+  let alerts=[];
+
+  Object.keys(data).forEach(id=>{
+    if(getStatus(data[id])==="OVERDUE"){
+      alerts.push(id+" - "+data[id].name);
+    }
+  });
+
+  if(alerts.length===0){
+    alert("No overdue machines");
+    return;
+  }
+
+  alert("EMAIL REPORT:\n\n"+alerts.join("\n"));
+}
+
 function seedMachines(){
 
 const machines = {
 
-"EQ-001": {name:"SCREEN Truepress Jet520HD",unit:"1",location:"Digital Color Room",maintenance:[],serviceIntervalDays:30},
-"EQ-002": {name:"SCREEN Truepress Jet520HD",unit:"2",location:"Digital Color Room",maintenance:[],serviceIntervalDays:30},
+"EQ-001": {name:"SCREEN Truepress Jet520HD",unit:"1",location:"Digital Color",maintenance:[],serviceIntervalDays:30},
+"EQ-002": {name:"SCREEN Truepress Jet520HD",unit:"2",location:"Digital Color",maintenance:[],serviceIntervalDays:30},
 
-"EQ-003": {name:"Océ VarioStream 7450",unit:"1",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
-"EQ-004": {name:"Océ VarioStream 7450",unit:"2",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
-"EQ-005": {name:"Océ VarioStream 7450",unit:"3",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
-"EQ-006": {name:"Océ VarioStream 7450",unit:"4",location:"Laser Room",maintenance:[],serviceIntervalDays:30},
+"EQ-003": {name:"Océ VarioStream 7450",unit:"1",location:"Laser",maintenance:[],serviceIntervalDays:30},
+"EQ-004": {name:"Océ VarioStream 7450",unit:"2",location:"Laser",maintenance:[],serviceIntervalDays:30},
 
-"EQ-007": {name:"MCS Hawk",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
+"EQ-005": {name:"MCS Hawk",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
 
-"EQ-008": {name:"Videojet 4320",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
-"EQ-009": {name:"Videojet 4320",unit:"2",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
-"EQ-010": {name:"Videojet 4320",unit:"3",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
-"EQ-011": {name:"Videojet 4320",unit:"4",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
-
-"EQ-012": {name:"MSE Roll-fed Inserter",unit:"1",location:"Inserting",maintenance:[],serviceIntervalDays:30},
-"EQ-013": {name:"MSE Roll-fed Inserter",unit:"2",location:"Inserting",maintenance:[],serviceIntervalDays:30},
-
-"EQ-014": {name:"Flowmaster RS Inserter",unit:"1",location:"Inserting",maintenance:[],serviceIntervalDays:30},
-"EQ-015": {name:"Flowmaster RS Inserter",unit:"2",location:"Inserting",maintenance:[],serviceIntervalDays:30},
-"EQ-016": {name:"Flowmaster RS Inserter",unit:"3",location:"Inserting",maintenance:[],serviceIntervalDays:30}
+"EQ-006": {name:"Videojet 4320",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30}
 
 };
 
@@ -269,13 +272,6 @@ Object.keys(machines).forEach(id=>{
 });
 
 alert("ALL equipment loaded!");
-}
-
-  Object.keys(machines).forEach(id=>{
-    db.collection("machines").doc(id).set(machines[id]);
-  });
-
-  alert("Machines loaded!");
 }
 </script>
 
