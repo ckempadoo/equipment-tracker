@@ -4,12 +4,22 @@
 <meta charset="UTF-8">
 <title>DMD Equipment Tracker</title>
 
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
-(function(){
-  emailjs.init("YOUR_PUBLIC_KEY"); // replace later
-})();
+const firebaseConfig = {
+  apiKey: "AIzaSyBhkaJGgEvon9hC5y5LMXRMf01iaIL0mkU",
+  authDomain: "dmd-equipment-tracker.firebaseapp.com",
+  projectId: "dmd-equipment-tracker",
+  storageBucket: "dmd-equipment-tracker.firebasestorage.app",
+  messagingSenderId: "649433121134",
+  appId: "1:649433121134:web:99a0d2b15582627753417f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 </script>
 
 <style>
@@ -48,17 +58,12 @@ input, select {
 .overdue { background:#dc2626; }
 .soon { background:#f59e0b; }
 .ok { background:#16a34a; }
-
-.status-ok { color:green; font-weight:bold; }
-.status-soon { color:orange; font-weight:bold; }
-.status-overdue { color:red; font-weight:bold; }
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <img src="images/logo.png">
   <h2>DIRECT MAIL DEPOT Equipment Tracker</h2>
 </div>
 
@@ -85,7 +90,7 @@ input, select {
 </div>
 
 <div class="card">
-  <h3>⚠️ Alerts</h3>
+  <h3>Alerts</h3>
   <ul id="alertsList"></ul>
 </div>
 
@@ -97,25 +102,11 @@ input, select {
 <div class="card">
   <h3 id="equipName"></h3>
   <p id="equipInfo"></p>
-  <p id="serviceInfo"></p>
 </div>
 
 <div class="card">
   <h3>Maintenance</h3>
-
-  <select id="type">
-    <option value="Maintenance">Maintenance</option>
-    <option value="Repair">Repair</option>
-    <option value="PM">PM</option>
-  </select>
-
-  <select id="taskDropdown">
-    <option value="">Select task</option>
-    <option value="Clean Roll">Clean Roll</option>
-    <option value="Replace Ink">Replace Ink</option>
-  </select>
-
-  <input id="taskInput" placeholder="Or type your task">
+  <input id="taskInput" placeholder="Enter task">
   <button onclick="addTask()">Add</button>
 </div>
 
@@ -125,151 +116,110 @@ input, select {
 </div>
 
 <div class="card">
-  <h3>Email Alerts</h3>
-  <input id="emailTo" placeholder="Enter email(s)">
-  <button onclick="sendEmailAlerts()">📧 Send Alerts</button>
+  <h3>Setup</h3>
+  <button onclick="seedMachines()">Load Machines</button>
 </div>
 
 </div>
 
-<p style="text-align:center;">© 2026 Clifford A. Kempadoo - DIRECT MAIL DEPOT</p>
+<p style="text-align:center;">© 2026 Clifford A. Kempadoo</p>
 
 </div>
 
 <script>
 const password="DMD2026";
 let currentUser="";
-let data = {};
-  "EQ-001":{name:"SCREEN Truepress Jet520HD",unit:"1",maintenance:[],serviceIntervalDays:30},
-  "EQ-002":{name:"SCREEN Truepress Jet520HD",unit:"2",maintenance:[],serviceIntervalDays:30}
-};
-let currentID="EQ-001";
+let data={};
+let currentID="";
 
 function login(){
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("pw").value;
+  const user=document.getElementById("username").value;
+  const pass=document.getElementById("pw").value;
 
-  if(!user){
-    alert("Enter your name");
-    return;
-  }
+  if(!user){ alert("Enter name"); return; }
 
-  if(pass === password){
-    currentUser = user;
+  if(pass===password){
+    currentUser=user;
+    document.getElementById("login").style.display="none";
+    document.getElementById("main").style.display="block";
+    loadMachines();
+  } else alert("Wrong password");
+}
 
-    document.getElementById("login").style.display = "none";
-    document.getElementById("main").style.display = "block";
-
-    function loadMachines(){
+function loadMachines(){
   db.collection("machines").get().then(snapshot=>{
-    data = {};
+    data={};
 
     snapshot.forEach(doc=>{
-      data[doc.id] = doc.data();
+      data[doc.id]=doc.data();
     });
 
     populateDropdown();
     buildDashboard();
     buildAlerts();
 
-    const first = Object.keys(data)[0];
+    const first=Object.keys(data)[0];
     if(first) selectEquipment(first);
   });
 }
-  } else {
-    alert("Wrong password");
-  }
-}
-
-function loadMachines(){
-  populateDropdown();
-  buildDashboard();
-  buildAlerts();
-  selectEquipment(currentID);
-}
 
 function populateDropdown(){
-  equipmentList.innerHTML="";
+  const list=document.getElementById("equipmentList");
+  list.innerHTML="";
+
   Object.keys(data).forEach(id=>{
-    equipmentList.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
+    list.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
   });
 }
 
 function selectEquipment(id){
   currentID=id;
-  let eq=data[id];
+  const eq=data[id];
 
-  equipName.innerText=eq.name+" "+eq.unit;
-  equipInfo.innerText=id+" | Location: "+(eq.location||"-")+" | Serial: "+(eq.serial||"-");
+  document.getElementById("equipName").innerText=eq.name+" "+eq.unit;
+  document.getElementById("equipInfo").innerText=id;
 
-  let status=getStatus(eq);
-  let cls="status-ok";
-  if(status==="OVERDUE") cls="status-overdue";
-  else if(status==="DUE SOON") cls="status-soon";
-
-  serviceInfo.innerHTML=`Status: <span class="${cls}">${status}</span>`;
-
+  const log=document.getElementById("log");
   log.innerHTML="";
-  eq.maintenance.forEach(x=> log.innerHTML+=`<li>${x}</li>`);
-}
-
-function getStatus(eq){
-  if(!eq.nextServiceDue) return "OK";
-  let diff=(new Date(eq.nextServiceDue)-new Date())/(1000*60*60*24);
-  if(diff<0) return "OVERDUE";
-  if(diff<5) return "DUE SOON";
-  return "OK";
+  eq.maintenance?.forEach(x=> log.innerHTML+=`<li>${x}</li>`);
 }
 
 function addTask(){
-  db.collection("machines").doc(currentID).set(data[currentID]).then(()=>{
-  selectEquipment(currentID);
-  buildDashboard();
-  buildAlerts();
-});
+  const task=document.getElementById("taskInput").value;
+  if(!task) return;
 
-  let type=document.getElementById("type").value;
+  data[currentID].maintenance=data[currentID].maintenance||[];
 
   data[currentID].maintenance.push(
-    `[${type}] ${task} | ${new Date().toLocaleString()} | ${currentUser}`
+    task+" | "+new Date().toLocaleString()+" | "+currentUser
   );
 
-  let next=new Date();
-  next.setDate(next.getDate()+30);
-  data[currentID].nextServiceDue=next.toISOString().split("T")[0];
-
-  selectEquipment(currentID);
-  buildDashboard();
-  buildAlerts();
+  db.collection("machines").doc(currentID).set(data[currentID]).then(()=>{
+    selectEquipment(currentID);
+  });
 }
 
 function buildDashboard(){
-  let o=0,s=0,k=0;
-  Object.values(data).forEach(eq=>{
-    let st=getStatus(eq);
-    if(st==="OVERDUE") o++;
-    else if(st==="DUE SOON") s++;
-    else k++;
-  });
-
-  boxOverdue.innerText="❌ Overdue\n"+o;
-  boxSoon.innerText="⚠️ Soon\n"+s;
-  boxOk.innerText="✅ OK\n"+k;
+  document.getElementById("boxOverdue").innerText="Ready";
+  document.getElementById("boxSoon").innerText="System";
+  document.getElementById("boxOk").innerText="Running";
 }
 
 function buildAlerts(){
-  alertsList.innerHTML="";
-  Object.keys(data).forEach(id=>{
-    let st=getStatus(data[id]);
-    if(st!=="OK"){
-      alertsList.innerHTML+=`<li>${id} - ${data[id].name} → ${st}</li>`;
-    }
-  });
+  document.getElementById("alertsList").innerHTML="<li>No alerts yet</li>";
 }
 
-// TEST EMAIL BUTTON
-function sendEmailAlerts(){
-  alert("Email button working ✅");
+function seedMachines(){
+  const machines={
+    "EQ-001":{name:"SCREEN Truepress Jet520HD",unit:"1",maintenance:[]},
+    "EQ-002":{name:"SCREEN Truepress Jet520HD",unit:"2",maintenance:[]}
+  };
+
+  Object.keys(machines).forEach(id=>{
+    db.collection("machines").doc(id).set(machines[id]);
+  });
+
+  alert("Machines loaded!");
 }
 </script>
 
