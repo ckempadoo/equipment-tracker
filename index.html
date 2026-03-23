@@ -200,9 +200,19 @@ function addTask(){
 }
 
 function buildDashboard(){
-  document.getElementById("boxOverdue").innerText="Ready";
-  document.getElementById("boxSoon").innerText="System";
-  document.getElementById("boxOk").innerText="Running";
+  let o=0,s=0,k=0;
+
+  Object.values(data).forEach(eq=>{
+    const st=getStatus(eq);
+
+    if(st==="OVERDUE") o++;
+    else if(st==="DUE SOON") s++;
+    else k++;
+  });
+
+  boxOverdue.innerText="❌ Overdue\n"+o;
+  boxSoon.innerText="⚠️ Soon\n"+s;
+  boxOk.innerText="✅ OK\n"+k;
 }
 
 function buildAlerts(){
