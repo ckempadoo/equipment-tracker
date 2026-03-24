@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>DMD Equipment Tracker</title>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -12,266 +11,224 @@
 const firebaseConfig = {
   apiKey: "AIzaSyBhkaJGgEvon9hC5y5LMXRMf01iaIL0mkU",
   authDomain: "dmd-equipment-tracker.firebaseapp.com",
-  projectId: "dmd-equipment-tracker",
-  storageBucket: "dmd-equipment-tracker.firebasestorage.app",
-  messagingSenderId: "649433121134",
-  appId: "1:649433121134:web:99a0d2b15582627753417f"
+  projectId: "dmd-equipment-tracker"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
 
 <style>
 body { font-family: Arial; margin:0; background:#f4f6f8; }
-
-.header {
-  background:#1f2937; color:white; padding:15px;
-}
-
+.header { background:#1f2937; color:white; padding:15px; }
 .container { padding:20px; }
-
-.card {
-  background:white; padding:15px; margin-bottom:15px;
-  border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-button {
-  padding:8px 12px; border:none; border-radius:6px;
-  background:#2563eb; color:white; cursor:pointer;
-}
-
-input, select {
-  padding:8px; margin:5px;
-  border-radius:6px; border:1px solid #ccc;
-}
-
-.dash-box {
-  flex:1;
-  padding:15px;
-  border-radius:10px;
-  color:white;
-  text-align:center;
-}
-
-.overdue { background:#dc2626; }
-.soon { background:#f59e0b; }
-.ok { background:#16a34a; }
+.card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
+button { padding:8px; margin:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
+input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #ccc; width:95%; }
+.dash { display:flex; gap:10px; }
+.box { flex:1; padding:10px; border-radius:8px; color:white; text-align:center; }
+.red{background:#dc2626;} .orange{background:#f59e0b;} .green{background:#16a34a;}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h2>DIRECT MAIL DEPOT Equipment Tracker</h2>
+<h2>DMD Equipment Tracker</h2>
 </div>
 
 <div class="container">
 
 <div id="login" class="card">
-  <h3>Login</h3>
-  <input id="username" placeholder="Your Name">
-  <input id="pw" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+<h3>Login</h3>
+<input id="username" placeholder="Your Name">
+<input id="pw" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
 </div>
 
 <div id="main" style="display:none;">
 
 <div class="card">
-  <h3>Dashboard</h3>
-  <div style="display:flex; gap:10px;">
-    <div id="boxOverdue" class="dash-box overdue"></div>
-    <div id="boxSoon" class="dash-box soon"></div>
-    <div id="boxOk" class="dash-box ok"></div>
-  </div>
+<h3>Dashboard</h3>
+<div class="dash">
+<div id="overdue" class="box red"></div>
+<div id="soon" class="box orange"></div>
+<div id="ok" class="box green"></div>
+</div>
 </div>
 
 <div class="card">
-  <h3>Alerts</h3>
-  <ul id="alertsList"></ul>
+<h3>Alerts</h3>
+<ul id="alerts"></ul>
 </div>
 
 <div class="card">
-  <h3>Equipment</h3>
-  <select id="equipmentList" onchange="selectEquipment(this.value)"></select>
+<h3>Select Equipment</h3>
+<select id="equipList" onchange="selectEq(this.value)"></select>
 </div>
 
 <div class="card">
-  <h3 id="equipName"></h3>
-  <p id="equipInfo"></p>
+<h3 id="eqTitle"></h3>
+<p id="eqInfo"></p>
+
+<label>Serial Number</label>
+<input id="serial">
+
+<label>Machine Notes</label>
+<input id="notes">
+
+<button onclick="saveDetails()">Save Details</button>
 </div>
 
 <div class="card">
-  <h3>Maintenance</h3>
-  <input id="taskInput" placeholder="Enter task">
-  <button onclick="addTask()">Add</button>
+<h3>Maintenance</h3>
+<input id="task" placeholder="Enter task">
+<button onclick="addTask()">Add</button>
 </div>
 
 <div class="card">
-  <h3>Maintenance Log</h3>
-  <ul id="log"></ul>
+<h3>Log</h3>
+<ul id="log"></ul>
 </div>
 
 <div class="card">
-  <h3>Setup</h3>
-  <button onclick="seedMachines()">Load ALL Equipment</button>
-  <button onclick="sendEmailAlerts()">Test Email Alerts</button>
+<button onclick="seed()">Load Equipment</button>
+<button onclick="emailTest()">Test Email</button>
 </div>
 
 </div>
-
-<p style="text-align:center;">© 2026 Clifford A. Kempadoo</p>
 
 </div>
 
 <script>
-const password="DMD2026";
-let currentUser="";
-let data={};
-let currentID="";
+let user="", data={}, current="";
 
 function login(){
-  const user=document.getElementById("username").value;
-  const pass=document.getElementById("pw").value;
-
-  if(!user){ alert("Enter name"); return; }
-
-  if(pass===password){
-    currentUser=user;
-    document.getElementById("login").style.display="none";
-    document.getElementById("main").style.display="block";
-    loadMachines();
-  } else alert("Wrong password");
+let u=username.value, p=pw.value;
+if(p==="DMD2026"){
+user=u;
+login.style.display="none";
+main.style.display="block";
+load();
+}
 }
 
-function loadMachines(){
-  db.collection("machines").get().then(snapshot=>{
-    data={};
-    snapshot.forEach(doc=>{ data[doc.id]=doc.data(); });
+function load(){
+db.collection("machines").get().then(snap=>{
+data={};
+snap.forEach(d=>data[d.id]=d.data());
+populate();
 
-    populateDropdown();
-    buildDashboard();
-    buildAlerts();
+let url=new URLSearchParams(window.location.search);
+let id=url.get("id");
 
-    const first=Object.keys(data)[0];
-    if(first) selectEquipment(first);
-  });
+if(id && data[id]) selectEq(id);
+else selectEq(Object.keys(data)[0]);
+
+dashboard(); alertsBuild();
+});
 }
 
-function populateDropdown(){
-  const list=document.getElementById("equipmentList");
-  list.innerHTML="";
-  Object.keys(data).forEach(id=>{
-    list.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
-  });
+function populate(){
+equipList.innerHTML="";
+Object.keys(data).forEach(id=>{
+equipList.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
+});
 }
 
-function selectEquipment(id){
-  currentID=id;
-  const eq=data[id];
+function selectEq(id){
+current=id;
+let e=data[id];
 
-  document.getElementById("equipName").innerText=eq.name+" "+eq.unit;
-  document.getElementById("equipInfo").innerText=id+" | "+(eq.location||"");
+eqTitle.innerText=e.name+" "+e.unit;
+eqInfo.innerText=id+" | "+(e.location||"");
 
-  const log=document.getElementById("log");
-  log.innerHTML="";
-  eq.maintenance?.forEach(x=> log.innerHTML+=`<li>${x}</li>`);
+serial.value=e.serial||"";
+notes.value=e.notes||"";
+
+log.innerHTML="";
+(e.maintenance||[]).forEach(x=>log.innerHTML+=`<li>${x}</li>`);
+}
+
+function saveDetails(){
+data[current].serial=serial.value;
+data[current].notes=notes.value;
+
+db.collection("machines").doc(current).set(data[current]).then(()=>{
+alert("Saved!");
+});
 }
 
 function addTask(){
-  const task=document.getElementById("taskInput").value;
-  if(!task) return;
+let t=task.value;
+if(!t) return;
 
-  data[currentID].maintenance=data[currentID].maintenance||[];
+let e=data[current];
+e.maintenance=e.maintenance||[];
 
-  data[currentID].maintenance.push(
-    task+" | "+new Date().toLocaleString()+" | "+currentUser
-  );
+e.maintenance.push(`${t} | ${new Date().toLocaleString()} | ${user}`);
 
-  let next=new Date();
-  next.setDate(next.getDate()+30);
-  data[currentID].nextServiceDue=next.toISOString().split("T")[0];
+let next=new Date();
+next.setDate(next.getDate()+30);
+e.nextServiceDue=next.toISOString();
 
-  db.collection("machines").doc(currentID).set(data[currentID]).then(()=>{
-    selectEquipment(currentID);
-    buildDashboard();
-    buildAlerts();
-  });
-}
-
-function getStatus(eq){
-  if(!eq.nextServiceDue) return "OK";
-
-  let diff=(new Date(eq.nextServiceDue)-new Date())/(1000*60*60*24);
-
-  if(diff<0) return "OVERDUE";
-  if(diff<5) return "DUE SOON";
-  return "OK";
-}
-
-function buildDashboard(){
-  let o=0,s=0,k=0;
-
-  Object.values(data).forEach(eq=>{
-    let st=getStatus(eq);
-    if(st==="OVERDUE") o++;
-    else if(st==="DUE SOON") s++;
-    else k++;
-  });
-
-  boxOverdue.innerText="Overdue: "+o;
-  boxSoon.innerText="Due Soon: "+s;
-  boxOk.innerText="OK: "+k;
-}
-
-function buildAlerts(){
-  alertsList.innerHTML="";
-  Object.keys(data).forEach(id=>{
-    let st=getStatus(data[id]);
-    if(st!=="OK"){
-      alertsList.innerHTML+=`<li>${id} - ${data[id].name} ${data[id].unit} → ${st}</li>`;
-    }
-  });
-}
-
-function sendEmailAlerts(){
-  let alerts=[];
-
-  Object.keys(data).forEach(id=>{
-    if(getStatus(data[id])==="OVERDUE"){
-      alerts.push(id+" - "+data[id].name);
-    }
-  });
-
-  if(alerts.length===0){
-    alert("No overdue machines");
-    return;
-  }
-
-  alert("EMAIL REPORT:\n\n"+alerts.join("\n"));
-}
-
-function seedMachines(){
-
-const machines = {
-
-"EQ-001": {name:"SCREEN Truepress Jet520HD",unit:"1",location:"Digital Color",maintenance:[],serviceIntervalDays:30},
-"EQ-002": {name:"SCREEN Truepress Jet520HD",unit:"2",location:"Digital Color",maintenance:[],serviceIntervalDays:30},
-
-"EQ-003": {name:"Océ VarioStream 7450",unit:"1",location:"Laser",maintenance:[],serviceIntervalDays:30},
-"EQ-004": {name:"Océ VarioStream 7450",unit:"2",location:"Laser",maintenance:[],serviceIntervalDays:30},
-
-"EQ-005": {name:"MCS Hawk",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30},
-
-"EQ-006": {name:"Videojet 4320",unit:"1",location:"Inkjet",maintenance:[],serviceIntervalDays:30}
-
-};
-
-Object.keys(machines).forEach(id=>{
-  db.collection("machines").doc(id).set(machines[id]);
+db.collection("machines").doc(current).set(e).then(()=>{
+selectEq(current);
+dashboard(); alertsBuild();
 });
+}
 
-alert("ALL equipment loaded!");
+function status(e){
+if(!e.nextServiceDue) return "OK";
+let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
+if(d<0) return "OVERDUE";
+if(d<5) return "SOON";
+return "OK";
+}
+
+function dashboard(){
+let o=0,s=0,k=0;
+Object.values(data).forEach(e=>{
+let st=status(e);
+if(st==="OVERDUE") o++;
+else if(st==="SOON") s++;
+else k++;
+});
+overdue.innerText="Overdue: "+o;
+soon.innerText="Due Soon: "+s;
+ok.innerText="OK: "+k;
+}
+
+function alertsBuild(){
+alerts.innerHTML="";
+Object.keys(data).forEach(id=>{
+let e=data[id], st=status(e);
+if(st!=="OK"){
+alerts.innerHTML+=`<li>${id} - ${e.name} ${e.unit} → ${st}</li>`;
+}
+});
+}
+
+function emailTest(){
+let list=[];
+Object.keys(data).forEach(id=>{
+if(status(data[id])==="OVERDUE"){
+list.push(id+" - "+data[id].name);
+}
+});
+alert(list.length?list.join("\n"):"No overdue machines");
+}
+
+function seed(){
+const m={
+"EQ-001":{name:"SCREEN Truepress",unit:"1"},
+"EQ-002":{name:"SCREEN Truepress",unit:"2"},
+"EQ-003":{name:"Oce VarioStream",unit:"1"},
+"EQ-004":{name:"Oce VarioStream",unit:"2"}
+};
+Object.keys(m).forEach(id=>{
+db.collection("machines").doc(id).set(m[id]);
+});
+alert("Loaded");
 }
 </script>
 
