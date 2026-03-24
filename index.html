@@ -264,8 +264,7 @@ db.collection("machines").doc(id).set(m[id]);
 });
 alert("Loaded");
 }
-</script>
-function saveDetails(){
+  function saveDetails(){
   if(!current) return;
 
   data[current].serial = document.getElementById("serial").value;
@@ -274,5 +273,7 @@ function saveDetails(){
   db.collection("machines").doc(current).set(data[current])
   .then(()=> alert("Details saved"));
 }
+</script>
+
 </body>
 </html>
