@@ -13,6 +13,7 @@ const firebaseConfig = {
   authDomain: "dmd-equipment-tracker.firebaseapp.com",
   projectId: "dmd-equipment-tracker"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
@@ -22,8 +23,8 @@ body { font-family: Arial; margin:0; background:#f4f6f8; }
 .header { background:#1f2937; color:white; padding:15px; }
 .container { padding:20px; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
-button { padding:8px; margin:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
-input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #ccc; width:95%; }
+button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
+input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; width:100%; }
 .dash { display:flex; gap:10px; }
 .box { flex:1; padding:10px; border-radius:8px; color:white; text-align:center; }
 .red{background:#dc2626;} .orange{background:#f59e0b;} .green{background:#16a34a;}
@@ -69,13 +70,7 @@ input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #cc
 <div class="card">
 <h3 id="eqTitle"></h3>
 <p id="eqInfo"></p>
-<label>Serial Number</label>
-<input id="serial">
 
-<label>Machine Notes</label>
-<input id="notes">
-
-<button onclick="saveDetails()">Save Details</button>
 <label>Serial Number</label>
 <input id="serial">
 
@@ -92,13 +87,13 @@ input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #cc
 </div>
 
 <div class="card">
-<h3>Log</h3>
+<h3>Maintenance Log</h3>
 <ul id="log"></ul>
 </div>
 
 <div class="card">
 <button onclick="seed()">Load Equipment</button>
-<button onclick="emailTest()">Test Email</button>
+<button onclick="emailTest()">Test Email Alerts</button>
 </div>
 
 </div>
@@ -109,71 +104,47 @@ input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #cc
 let user="", data={}, current="";
 
 function login(){
-let u = document.getElementById("username").value;
-let p = document.getElementById("pw").value;
+let u=document.getElementById("username").value;
+let p=document.getElementById("pw").value;
 
-if(!u){
-  alert("Enter your name");
-  return;
-}
+if(!u){ alert("Enter name"); return; }
 
-if(p === "DMD2026"){
-  user = u;
-
-  document.getElementById("login").style.display = "none";
-  document.getElementById("main").style.display = "block";
-
-  // SAFE LOAD
-  try {
-    load();
-  } catch(e){
-    console.error(e);
-    alert("Loading issue, but continuing...");
-  }
-
-} else {
-  alert("Wrong password");
-}
+if(p==="DMD2026"){
+user=u;
+document.getElementById("login").style.display="none";
+document.getElementById("main").style.display="block";
+load();
+} else alert("Wrong password");
 }
 
 function load(){
-db.collection("machines").get()
-.then(snap=>{
-  data={};
-  snap.forEach(d=>data[d.id]=d.data());
+db.collection("machines").get().then(snap=>{
+data={};
+snap.forEach(d=>data[d.id]=d.data());
 
-  populate();
+populate();
 
-  let url=new URLSearchParams(window.location.search);
-  let id=url.get("id");
+if(Object.keys(data).length>0){
+selectEq(Object.keys(data)[0]);
+}
 
-  if(id && data[id]) selectEq(id);
-  else if(Object.keys(data).length > 0)
-    selectEq(Object.keys(data)[0]);
-
-  dashboard();
-  alertsBuild();
-})
-.catch(err=>{
-  console.error("Firestore error:", err);
-  alert("Database connection issue. Check Firebase rules.");
+dashboard();
+alertsBuild();
 });
 }
 
 function populate(){
 equipList.innerHTML="";
 Object.keys(data).forEach(id=>{
-equipList.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</option>`;
+equipList.innerHTML+=`<option value="${id}">${data[id].name||id} ${data[id].unit||""}</option>`;
 });
 }
 
 function selectEq(id){
-  document.getElementById("serial").value = data[id].serial || "";
-document.getElementById("notes").value = data[id].notes || "";
 current=id;
 let e=data[id];
 
-eqTitle.innerText=e.name+" "+e.unit;
+eqTitle.innerText=(e.name||"")+" "+(e.unit||"");
 eqInfo.innerText=id+" | "+(e.location||"");
 
 serial.value=e.serial||"";
@@ -187,9 +158,8 @@ function saveDetails(){
 data[current].serial=serial.value;
 data[current].notes=notes.value;
 
-db.collection("machines").doc(current).set(data[current]).then(()=>{
-alert("Saved!");
-});
+db.collection("machines").doc(current).set(data[current])
+.then(()=>alert("Saved"));
 }
 
 function addTask(){
@@ -207,7 +177,8 @@ e.nextServiceDue=next.toISOString();
 
 db.collection("machines").doc(current).set(e).then(()=>{
 selectEq(current);
-dashboard(); alertsBuild();
+dashboard();
+alertsBuild();
 });
 }
 
@@ -237,7 +208,7 @@ alerts.innerHTML="";
 Object.keys(data).forEach(id=>{
 let e=data[id], st=status(e);
 if(st!=="OK"){
-alerts.innerHTML+=`<li>${id} - ${e.name} ${e.unit} → ${st}</li>`;
+alerts.innerHTML+=`<li>${id} - ${e.name||""} ${e.unit||""} → ${st}</li>`;
 }
 });
 }
@@ -262,16 +233,7 @@ const m={
 Object.keys(m).forEach(id=>{
 db.collection("machines").doc(id).set(m[id]);
 });
-alert("Loaded");
-}
-  function saveDetails(){
-  if(!current) return;
-
-  data[current].serial = document.getElementById("serial").value;
-  data[current].notes = document.getElementById("notes").value;
-
-  db.collection("machines").doc(current).set(data[current])
-  .then(()=> alert("Details saved"));
+alert("Equipment Loaded");
 }
 </script>
 
