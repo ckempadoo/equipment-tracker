@@ -77,6 +77,9 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <label>Machine Notes</label>
 <input id="notes">
 
+<label>Next Service Due Date</label>
+<input type="date" id="dueDate">
+
 <button onclick="saveDetails()">Save Details</button>
 </div>
 
@@ -124,9 +127,11 @@ snap.forEach(d=>data[d.id]=d.data());
 
 populate();
 
-if(Object.keys(data).length>0){
-selectEq(Object.keys(data)[0]);
-}
+let params=new URLSearchParams(window.location.search);
+let id=params.get("id");
+
+if(id && data[id]) selectEq(id);
+else if(Object.keys(data).length>0) selectEq(Object.keys(data)[0]);
 
 dashboard();
 alertsBuild();
@@ -149,6 +154,7 @@ eqInfo.innerText=id+" | "+(e.location||"");
 
 serial.value=e.serial||"";
 notes.value=e.notes||"";
+dueDate.value = e.nextServiceDue ? e.nextServiceDue.split("T")[0] : "";
 
 log.innerHTML="";
 (e.maintenance||[]).forEach(x=>log.innerHTML+=`<li>${x}</li>`);
@@ -157,6 +163,10 @@ log.innerHTML="";
 function saveDetails(){
 data[current].serial=serial.value;
 data[current].notes=notes.value;
+
+if(dueDate.value){
+data[current].nextServiceDue=new Date(dueDate.value).toISOString();
+}
 
 db.collection("machines").doc(current).set(data[current])
 .then(()=>alert("Saved"));
@@ -171,9 +181,12 @@ e.maintenance=e.maintenance||[];
 
 e.maintenance.push(`${t} | ${new Date().toLocaleString()} | ${user}`);
 
+// Only auto-set if not manually set
+if(!e.nextServiceDue){
 let next=new Date();
 next.setDate(next.getDate()+30);
 e.nextServiceDue=next.toISOString();
+}
 
 db.collection("machines").doc(current).set(e).then(()=>{
 selectEq(current);
