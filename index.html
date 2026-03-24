@@ -103,28 +103,54 @@ input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #cc
 let user="", data={}, current="";
 
 function login(){
-let u=username.value, p=pw.value;
-if(p==="DMD2026"){
-user=u;
-login.style.display="none";
-main.style.display="block";
-load();
+let u = document.getElementById("username").value;
+let p = document.getElementById("pw").value;
+
+if(!u){
+  alert("Enter your name");
+  return;
+}
+
+if(p === "DMD2026"){
+  user = u;
+
+  document.getElementById("login").style.display = "none";
+  document.getElementById("main").style.display = "block";
+
+  // SAFE LOAD
+  try {
+    load();
+  } catch(e){
+    console.error(e);
+    alert("Loading issue, but continuing...");
+  }
+
+} else {
+  alert("Wrong password");
 }
 }
 
 function load(){
-db.collection("machines").get().then(snap=>{
-data={};
-snap.forEach(d=>data[d.id]=d.data());
-populate();
+db.collection("machines").get()
+.then(snap=>{
+  data={};
+  snap.forEach(d=>data[d.id]=d.data());
 
-let url=new URLSearchParams(window.location.search);
-let id=url.get("id");
+  populate();
 
-if(id && data[id]) selectEq(id);
-else selectEq(Object.keys(data)[0]);
+  let url=new URLSearchParams(window.location.search);
+  let id=url.get("id");
 
-dashboard(); alertsBuild();
+  if(id && data[id]) selectEq(id);
+  else if(Object.keys(data).length > 0)
+    selectEq(Object.keys(data)[0]);
+
+  dashboard();
+  alertsBuild();
+})
+.catch(err=>{
+  console.error("Firestore error:", err);
+  alert("Database connection issue. Check Firebase rules.");
 });
 }
 
