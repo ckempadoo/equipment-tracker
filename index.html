@@ -69,7 +69,13 @@ input, select { padding:8px; margin:5px; border-radius:6px; border:1px solid #cc
 <div class="card">
 <h3 id="eqTitle"></h3>
 <p id="eqInfo"></p>
+<label>Serial Number</label>
+<input id="serial">
 
+<label>Machine Notes</label>
+<input id="notes">
+
+<button onclick="saveDetails()">Save Details</button>
 <label>Serial Number</label>
 <input id="serial">
 
@@ -162,6 +168,8 @@ equipList.innerHTML+=`<option value="${id}">${data[id].name} ${data[id].unit}</o
 }
 
 function selectEq(id){
+  document.getElementById("serial").value = data[id].serial || "";
+document.getElementById("notes").value = data[id].notes || "";
 current=id;
 let e=data[id];
 
@@ -257,6 +265,14 @@ db.collection("machines").doc(id).set(m[id]);
 alert("Loaded");
 }
 </script>
+function saveDetails(){
+  if(!current) return;
 
+  data[current].serial = document.getElementById("serial").value;
+  data[current].notes = document.getElementById("notes").value;
+
+  db.collection("machines").doc(current).set(data[current])
+  .then(()=> alert("Details saved"));
+}
 </body>
 </html>
