@@ -97,6 +97,9 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <div class="card">
 <button onclick="seed()">Load Equipment</button>
 <button onclick="emailTest()">Test Email Alerts</button>
+<button onclick="reportOne()">Report: This Machine</button>
+<button onclick="reportAll()">Report: ALL Machines</button>
+<button onclick="emailReport()">Email Report</button>
 </div>
 
 </div>
@@ -181,7 +184,6 @@ e.maintenance=e.maintenance||[];
 
 e.maintenance.push(`${t} | ${new Date().toLocaleString()} | ${user}`);
 
-// Only auto-set if not manually set
 if(!e.nextServiceDue){
 let next=new Date();
 next.setDate(next.getDate()+30);
@@ -234,6 +236,32 @@ list.push(id+" - "+data[id].name);
 }
 });
 alert(list.length?list.join("\n"):"No overdue machines");
+}
+
+function reportOne(){
+let e=data[current];
+let report = `EQUIPMENT REPORT\n\nID: ${current}\nName: ${e.name||""}\nSerial: ${e.serial||""}\nNext Service: ${e.nextServiceDue||""}\n\nLOG:\n${(e.maintenance||[]).join("\n")}`;
+alert(report);
+}
+
+function reportAll(){
+let report="ALL EQUIPMENT REPORT\n\n";
+Object.keys(data).forEach(id=>{
+let e=data[id];
+report+=`${id} - ${e.name||""} ${e.unit||""}\nSerial: ${e.serial||""}\nNext: ${e.nextServiceDue||""}\nStatus: ${status(e)}\n\n`;
+});
+navigator.clipboard.writeText(report);
+alert("Report copied to clipboard!");
+}
+
+function emailReport(){
+let body="Overdue Machines:\n\n";
+Object.keys(data).forEach(id=>{
+if(status(data[id])==="OVERDUE"){
+body+=id+" - "+data[id].name+"\n";
+}
+});
+window.location.href=`mailto:?subject=Equipment Report&body=${encodeURIComponent(body)}`;
 }
 
 function seed(){
