@@ -177,8 +177,14 @@ alertsBuild();
 
 function populate(){
 equipList.innerHTML="";
+
 Object.keys(data).forEach(id=>{
-equipList.innerHTML+=`<option value="${id}">${data[id].name||id} ${data[id].unit||""}</option>`;
+let e = data[id];
+
+// 🚫 skip archived
+if(e.archived) return;
+
+equipList.innerHTML += `<option value="${id}">${id} - ${e.name||""}</option>`;
 });
 }
 
