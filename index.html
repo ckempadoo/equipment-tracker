@@ -265,16 +265,60 @@ window.location.href=`mailto:?subject=Equipment Report&body=${encodeURIComponent
 }
 
 function seed(){
-const m={
-"EQ-001":{name:"SCREEN Truepress",unit:"1"},
-"EQ-002":{name:"SCREEN Truepress",unit:"2"},
-"EQ-003":{name:"Oce VarioStream",unit:"1"},
-"EQ-004":{name:"Oce VarioStream",unit:"2"}
-};
-Object.keys(m).forEach(id=>{
-db.collection("machines").doc(id).set(m[id]);
+
+let machines = {};
+
+let list = [
+"SCREEN Truepress Jet520HD",
+"Océ VarioStream 7450",
+"Roll Cart",
+"MCS Hawk",
+"Videojet 4320",
+"MSE Roll-fed Inserter",
+"MSE Sheet-fed Inserter",
+"Flowmaster RS Inserter",
+"Flowmaster RS Inserter Advanced",
+"BlueCrest Rival",
+"Bowe Fusion Inserter",
+"Bell and Howell Inserter",
+"Universal Friction Feeder",
+"Pitney Bowes R750 Meter",
+"Baum Folder 8-Page",
+"Baum Folder 16-Page",
+"Baum Folder F&R",
+"Baum Slit/Score/Perf",
+"Baum Gate Fold",
+"Baum Continuous Feed",
+"Continuous Cutter",
+"Continuous Cutter Signoff",
+"Spedo Pin-less Cutter",
+"ESP 400 Unwind",
+"MBO Folder Plus",
+"MBO Accumulator",
+"Speedo Merger",
+"MBO High-Speed Line",
+"Pick & Place System",
+"AT-112 Affixer",
+"Tabber/Labeler"
+];
+
+let counts = [2,4,1,1,4,2,2,3,1,1,1,2,20,1,6,3,5,2,2,1,5,1,2,8,1,2,4,1,3,1,7];
+
+let id = 1;
+
+list.forEach((name,i)=>{
+for(let x=0;x<counts[i];x++){
+let eq = "EQ-"+String(id).padStart(3,'0');
+machines[eq] = {name:name};
+id++;
+}
 });
-alert("Equipment Loaded");
+
+Object.keys(machines).forEach(k=>{
+db.collection("machines").doc(k).set(machines[k]);
+});
+
+alert("FULL Equipment Loaded");
 }
 </script>
 
