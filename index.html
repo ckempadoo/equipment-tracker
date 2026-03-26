@@ -125,6 +125,38 @@ load();
 } else alert("Wrong password");
 }
 
+function archiveEquipment(){
+
+if(!current){
+alert("No equipment selected");
+return;
+}
+
+let confirmArchive = confirm("Archive this equipment?\n\n" + current);
+
+if(!confirmArchive) return;
+
+let e = data[current];
+e.archived = true;
+
+db.collection("machines").doc(current).set(e).then(()=>{
+alert("Archived: " + current);
+
+// remove from visible list
+delete data[current];
+
+populate();
+
+let keys = Object.keys(data);
+if(keys.length > 0){
+selectEq(keys[0]);
+}
+
+dashboard();
+alertsBuild();
+
+});
+}  
 function load(){
 db.collection("machines").get().then(snap=>{
 data={};
