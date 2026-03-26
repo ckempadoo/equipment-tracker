@@ -320,6 +320,42 @@ db.collection("machines").doc(k).set(machines[k]);
 
 alert("FULL Equipment Loaded");
 }
+  function deleteEquipment(){
+
+if(!current){
+alert("No equipment selected");
+return;
+}
+
+let confirmDelete = confirm("Are you sure you want to DELETE this equipment?\n\n" + current);
+
+if(!confirmDelete) return;
+
+db.collection("machines").doc(current).delete().then(()=>{
+
+alert("Deleted: " + current);
+
+// remove from local data
+delete data[current];
+
+// reload dropdown
+populate();
+
+// select next available
+let keys = Object.keys(data);
+if(keys.length > 0){
+selectEq(keys[0]);
+} else {
+eqTitle.innerText="";
+eqInfo.innerText="";
+log.innerHTML="";
+}
+
+dashboard();
+alertsBuild();
+
+});
+}
 </script>
 
 </body>
