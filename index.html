@@ -4,16 +4,8 @@
 <meta charset="UTF-8">
 <title>DMD Equipment Tracker</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-
-<!-- Chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- QR Scanner -->
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
 const firebaseConfig = {
@@ -33,16 +25,12 @@ body { font-family: Arial; margin:0; background:#f4f6f8; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
 button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;}
 input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; width:100%; }
-.dash { display:flex; gap:10px; }
-.box { flex:1; padding:10px; border-radius:8px; color:white; text-align:center; }
-.red{background:#dc2626;} .orange{background:#f59e0b;} .green{background:#16a34a;}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-<img src="https://via.placeholder.com/100x40?text=DMD" height="40">
 <h2>DMD Equipment Tracker</h2>
 </div>
 
@@ -50,33 +38,15 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 
 <div id="login" class="card">
 <h3>Login</h3>
-<input id="username" placeholder="Email">
-<input id="pw" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+<input id="username" placeholder="Your Name">
+<button onclick="login()">Enter</button>
 </div>
 
 <div id="main" style="display:none;">
 
 <div class="card">
-<h3>Dashboard</h3>
-<div class="dash">
-<div id="overdue" class="box red"></div>
-<div id="soon" class="box orange"></div>
-<div id="ok" class="box green"></div>
-</div>
-<canvas id="chart"></canvas>
-</div>
-
-<div class="card">
-<h3>Alerts</h3>
-<ul id="alerts"></ul>
-</div>
-
-<div class="card">
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
-<button onclick="startScanner()">Scan QR</button>
-<div id="reader"></div>
 </div>
 
 <div class="card">
@@ -103,7 +73,7 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 </div>
 
 <div class="card">
-<button onclick="exportExcel()">Export Excel</button>
+<button onclick="seed()">Load Equipment</button>
 </div>
 
 </div>
@@ -113,90 +83,13 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 let user="", data={}, current="";
 
 function login(){
+user = username.value.trim();
+if(!user){ alert("Enter your name"); return; }
 
-let email = username.value.trim();
-let password = pw.value;
-
-if(!email || !password){
-alert("Enter email and password");
-return;
-}
-
-firebase.auth().signInWithEmailAndPassword(email, password)
-.then(res=>{
-user = res.user.email;
-
-document.getElementById("login").style.display="none";
-document.getElementById("main").style.display="block";
+login.style.display="none";
+main.style.display="block";
 
 load();
-})
-.catch(error=>{
-console.log(error);
-
-if(error.code === "auth/invalid-email"){
-alert("Invalid email format");
-}
-else if(error.code === "auth/user-not-found"){
-alert("User not found");
-}
-else if(error.code === "auth/wrong-password"){
-alert("Wrong password");
-}
-else if(error.code === "auth/configuration-not-found"){
-alert("Auth not enabled in Firebase");
-}
-else{
-alert("Login error: " + error.message);
-}
-});
-
-}
-
-firebase.auth().signInWithEmailAndPassword(email, password)
-.then(res=>{
-user = res.user.email;
-
-document.getElementById("login").style.display="none";
-document.getElementById("main").style.display="block";
-
-load();
-})
-.catch(error=>{
-console.log(error);
-
-if(error.code === "auth/invalid-email"){
-alert("Invalid email format");
-}
-else if(error.code === "auth/user-not-found"){
-alert("User not found");
-}
-else if(error.code === "auth/wrong-password"){
-alert("Wrong password");
-}
-else if(error.code === "auth/configuration-not-found"){
-alert("Auth not enabled in Firebase");
-}
-else{
-alert("Login error: " + error.message);
-}
-});
-
-}
-
-firebase.auth().signInWithEmailAndPassword(email, password)
-.then(res=>{
-user = res.user.email;
-
-document.getElementById("login").style.display="none";
-document.getElementById("main").style.display="block";
-
-load();
-})
-.catch(error=>{
-alert("Login failed. Check email/password.");
-});
-
 }
 
 function load(){
@@ -205,15 +98,8 @@ data={};
 snap.forEach(d=>data[d.id]=d.data());
 populate();
 
-let params=new URLSearchParams(window.location.search);
-let id=params.get("id");
-
-if(id && data[id]) selectEq(id);
-else selectEq(Object.keys(data)[0]);
-
-dashboard();
-alertsBuild();
-drawChart();
+let first = Object.keys(data)[0];
+if(first) selectEq(first);
 });
 }
 
@@ -221,7 +107,7 @@ function populate(){
 equipList.innerHTML="";
 Object.keys(data).forEach(id=>{
 if(data[id].archived) return;
-equipList.innerHTML+=`<option value="${id}">${id} - ${data[id].name||""}</option>`;
+equipList.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 });
 }
 
@@ -268,12 +154,7 @@ date:new Date().toLocaleString(),
 user:user
 });
 
-db.collection("machines").doc(current).set(e).then(()=>{
-selectEq(current);
-dashboard();
-alertsBuild();
-drawChart();
-});
+db.collection("machines").doc(current).set(e).then(()=>selectEq(current));
 }
 
 function archiveEquipment(){
@@ -287,80 +168,21 @@ selectEq(Object.keys(data)[0]);
 });
 }
 
-function status(e){
-if(!e.nextServiceDue) return "OK";
-let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-if(d<0) return "OVERDUE";
-if(d<5) return "SOON";
-return "OK";
-}
+function seed(){
 
-function dashboard(){
-let o=0,s=0,k=0;
-Object.values(data).forEach(e=>{
-let st=status(e);
-if(st==="OVERDUE") o++;
-else if(st==="SOON") s++;
-else k++;
-});
-overdue.innerText="Overdue: "+o;
-soon.innerText="Soon: "+s;
-ok.innerText="OK: "+k;
-}
+let machines = {};
+let list = ["Machine A","Machine B","Machine C"];
 
-function alertsBuild(){
-alerts.innerHTML="";
-Object.keys(data).forEach(id=>{
-let e=data[id], st=status(e);
-if(st!=="OK"){
-alerts.innerHTML+=`<li>${id} - ${e.name} → ${st}</li>`;
-}
-});
-}
-
-function drawChart(){
-let o=0,s=0,k=0;
-Object.values(data).forEach(e=>{
-let st=status(e);
-if(st==="OVERDUE") o++;
-else if(st==="SOON") s++;
-else k++;
+list.forEach((name,i)=>{
+let id="EQ-"+String(i+1).padStart(3,'0');
+machines[id]={name:name};
 });
 
-new Chart(document.getElementById("chart"), {
-type:"doughnut",
-data:{
-labels:["Overdue","Soon","OK"],
-datasets:[{data:[o,s,k]}]
-}
+Object.keys(machines).forEach(k=>{
+db.collection("machines").doc(k).set(machines[k]);
 });
-}
 
-function exportExcel(){
-let rows=[["ID","Name","Serial","Due","Status"]];
-Object.keys(data).forEach(id=>{
-let e=data[id];
-rows.push([id,e.name||"",e.serial||"",e.nextServiceDue||"",status(e)]);
-});
-let csv=rows.map(r=>r.join(",")).join("\n");
-let blob=new Blob([csv]);
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="report.csv";
-a.click();
-}
-
-function startScanner(){
-const scanner = new Html5Qrcode("reader");
-scanner.start({facingMode:"environment"},{fps:10},
-(decodedText)=>{
-let url=new URL(decodedText);
-let id=url.searchParams.get("id");
-if(id && data[id]){
-selectEq(id);
-scanner.stop();
-}
-});
+alert("Loaded");
 }
 </script>
 
