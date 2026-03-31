@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <title>DMD Equipment Tracker</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+<!-- Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- QR Scanner -->
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
 const firebaseConfig = {
@@ -20,10 +28,10 @@ const db = firebase.firestore();
 
 <style>
 body { font-family: Arial; margin:0; background:#f4f6f8; }
-.header { background:#1f2937; color:white; padding:15px; }
+.header { background:#1f2937; color:white; padding:15px; display:flex; align-items:center; gap:10px;}
 .container { padding:20px; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
-button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
+button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;}
 input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; width:100%; }
 .dash { display:flex; gap:10px; }
 .box { flex:1; padding:10px; border-radius:8px; color:white; text-align:center; }
@@ -34,6 +42,7 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <body>
 
 <div class="header">
+<img src="https://via.placeholder.com/100x40?text=DMD" height="40">
 <h2>DMD Equipment Tracker</h2>
 </div>
 
@@ -41,7 +50,7 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 
 <div id="login" class="card">
 <h3>Login</h3>
-<input id="username" placeholder="Your Name">
+<input id="username" placeholder="Email">
 <input id="pw" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
@@ -55,6 +64,7 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <div id="soon" class="box orange"></div>
 <div id="ok" class="box green"></div>
 </div>
+<canvas id="chart"></canvas>
 </div>
 
 <div class="card">
@@ -65,26 +75,22 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <div class="card">
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
+<button onclick="startScanner()">Scan QR</button>
+<div id="reader"></div>
 </div>
 
 <div class="card">
 <h3 id="eqTitle"></h3>
 <p id="eqInfo"></p>
 
-<label>Serial Number</label>
-<input id="serial">
-
-<label>Machine Notes</label>
-<input id="notes">
-
-<label>Next Service Due Date</label>
+<input id="serial" placeholder="Serial Number">
+<input id="notes" placeholder="Notes">
 <input type="date" id="dueDate">
 
-<button onclick="saveDetails()">Save Details</button>
+<button onclick="saveDetails()">Save</button>
+<button onclick="archiveEquipment()" style="background:#f59e0b;">Archive</button>
 </div>
-<button onclick="archiveEquipment()" style="background:#f59e0b;">Archive Equipment</button>
-<button onclick="deleteEquipment()" style="background:#dc2626;">Delete Equipment</button>
-  
+
 <div class="card">
 <h3>Maintenance</h3>
 <input id="task" placeholder="Enter task">
@@ -92,99 +98,54 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 </div>
 
 <div class="card">
-<h3>Maintenance Log</h3>
+<h3>Log</h3>
 <ul id="log"></ul>
 </div>
 
 <div class="card">
-<button onclick="seed()">Load Equipment</button>
-<button onclick="emailTest()">Test Email Alerts</button>
-<button onclick="reportOne()">Report: This Machine</button>
-<button onclick="reportAll()">Report: ALL Machines</button>
-<button onclick="emailReport()">Email Report</button>
+<button onclick="exportExcel()">Export Excel</button>
 </div>
 
 </div>
-
 </div>
 
 <script>
 let user="", data={}, current="";
 
 function login(){
-let u=document.getElementById("username").value;
-let p=document.getElementById("pw").value;
-
-if(!u){ alert("Enter name"); return; }
-
-if(p==="DMD2026"){
-user=u;
-document.getElementById("login").style.display="none";
-document.getElementById("main").style.display="block";
+firebase.auth().signInWithEmailAndPassword(username.value, pw.value)
+.then(res=>{
+user = res.user.email;
+login.style.display="none";
+main.style.display="block";
 load();
-} else alert("Wrong password");
+})
+.catch(e=>alert(e.message));
 }
 
-function archiveEquipment(){
-
-if(!current){
-alert("No equipment selected");
-return;
-}
-
-let confirmArchive = confirm("Archive this equipment?\n\n" + current);
-
-if(!confirmArchive) return;
-
-let e = data[current];
-e.archived = true;
-
-db.collection("machines").doc(current).set(e).then(()=>{
-alert("Archived: " + current);
-
-// remove from visible list
-delete data[current];
-
-populate();
-
-let keys = Object.keys(data);
-if(keys.length > 0){
-selectEq(keys[0]);
-}
-
-dashboard();
-alertsBuild();
-
-});
-}  
 function load(){
 db.collection("machines").get().then(snap=>{
 data={};
 snap.forEach(d=>data[d.id]=d.data());
-
 populate();
 
 let params=new URLSearchParams(window.location.search);
 let id=params.get("id");
 
 if(id && data[id]) selectEq(id);
-else if(Object.keys(data).length>0) selectEq(Object.keys(data)[0]);
+else selectEq(Object.keys(data)[0]);
 
 dashboard();
 alertsBuild();
+drawChart();
 });
 }
 
 function populate(){
 equipList.innerHTML="";
-
 Object.keys(data).forEach(id=>{
-let e = data[id];
-
-// 🚫 skip archived
-if(e.archived) return;
-
-equipList.innerHTML += `<option value="${id}">${id} - ${e.name||""}</option>`;
+if(data[id].archived) return;
+equipList.innerHTML+=`<option value="${id}">${id} - ${data[id].name||""}</option>`;
 });
 }
 
@@ -192,27 +153,30 @@ function selectEq(id){
 current=id;
 let e=data[id];
 
-eqTitle.innerText=(e.name||"")+" "+(e.unit||"");
-eqInfo.innerText=id+" | "+(e.location||"");
+eqTitle.innerText=e.name||"";
+eqInfo.innerText=id;
 
 serial.value=e.serial||"";
 notes.value=e.notes||"";
-dueDate.value = e.nextServiceDue ? e.nextServiceDue.split("T")[0] : "";
+dueDate.value=e.nextServiceDue?e.nextServiceDue.split("T")[0]:"";
 
 log.innerHTML="";
-(e.maintenance||[]).forEach(x=>log.innerHTML+=`<li>${x}</li>`);
+(e.maintenance||[]).forEach(x=>{
+if(typeof x==="string"){
+log.innerHTML+=`<li>${x}</li>`;
+}else{
+log.innerHTML+=`<li>${x.task} | ${x.date} | ${x.user}</li>`;
+}
+});
 }
 
 function saveDetails(){
-data[current].serial=serial.value;
-data[current].notes=notes.value;
+let e=data[current];
+e.serial=serial.value;
+e.notes=notes.value;
+if(dueDate.value) e.nextServiceDue=new Date(dueDate.value).toISOString();
 
-if(dueDate.value){
-data[current].nextServiceDue=new Date(dueDate.value).toISOString();
-}
-
-db.collection("machines").doc(current).set(data[current])
-.then(()=>alert("Saved"));
+db.collection("machines").doc(current).set(e).then(()=>alert("Saved"));
 }
 
 function addTask(){
@@ -222,18 +186,28 @@ if(!t) return;
 let e=data[current];
 e.maintenance=e.maintenance||[];
 
-e.maintenance.push(`${t} | ${new Date().toLocaleString()} | ${user}`);
-
-if(!e.nextServiceDue){
-let next=new Date();
-next.setDate(next.getDate()+30);
-e.nextServiceDue=next.toISOString();
-}
+e.maintenance.push({
+task:t,
+date:new Date().toLocaleString(),
+user:user
+});
 
 db.collection("machines").doc(current).set(e).then(()=>{
 selectEq(current);
 dashboard();
 alertsBuild();
+drawChart();
+});
+}
+
+function archiveEquipment(){
+let e=data[current];
+e.archived=true;
+
+db.collection("machines").doc(current).set(e).then(()=>{
+delete data[current];
+populate();
+selectEq(Object.keys(data)[0]);
 });
 }
 
@@ -254,7 +228,7 @@ else if(st==="SOON") s++;
 else k++;
 });
 overdue.innerText="Overdue: "+o;
-soon.innerText="Due Soon: "+s;
+soon.innerText="Soon: "+s;
 ok.innerText="OK: "+k;
 }
 
@@ -263,137 +237,53 @@ alerts.innerHTML="";
 Object.keys(data).forEach(id=>{
 let e=data[id], st=status(e);
 if(st!=="OK"){
-alerts.innerHTML+=`<li>${id} - ${e.name||""} ${e.unit||""} → ${st}</li>`;
+alerts.innerHTML+=`<li>${id} - ${e.name} → ${st}</li>`;
 }
 });
 }
 
-function emailTest(){
-let list=[];
-Object.keys(data).forEach(id=>{
-if(status(data[id])==="OVERDUE"){
-list.push(id+" - "+data[id].name);
+function drawChart(){
+let o=0,s=0,k=0;
+Object.values(data).forEach(e=>{
+let st=status(e);
+if(st==="OVERDUE") o++;
+else if(st==="SOON") s++;
+else k++;
+});
+
+new Chart(document.getElementById("chart"), {
+type:"doughnut",
+data:{
+labels:["Overdue","Soon","OK"],
+datasets:[{data:[o,s,k]}]
 }
 });
-alert(list.length?list.join("\n"):"No overdue machines");
 }
 
-function reportOne(){
-let e=data[current];
-let report = `EQUIPMENT REPORT\n\nID: ${current}\nName: ${e.name||""}\nSerial: ${e.serial||""}\nNext Service: ${e.nextServiceDue||""}\n\nLOG:\n${(e.maintenance||[]).join("\n")}`;
-alert(report);
-}
-
-function reportAll(){
-let report="ALL EQUIPMENT REPORT\n\n";
+function exportExcel(){
+let rows=[["ID","Name","Serial","Due","Status"]];
 Object.keys(data).forEach(id=>{
 let e=data[id];
-report+=`${id} - ${e.name||""} ${e.unit||""}\nSerial: ${e.serial||""}\nNext: ${e.nextServiceDue||""}\nStatus: ${status(e)}\n\n`;
+rows.push([id,e.name||"",e.serial||"",e.nextServiceDue||"",status(e)]);
 });
-navigator.clipboard.writeText(report);
-alert("Report copied to clipboard!");
+let csv=rows.map(r=>r.join(",")).join("\n");
+let blob=new Blob([csv]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="report.csv";
+a.click();
 }
 
-function emailReport(){
-let body="Overdue Machines:\n\n";
-Object.keys(data).forEach(id=>{
-if(status(data[id])==="OVERDUE"){
-body+=id+" - "+data[id].name+"\n";
+function startScanner(){
+const scanner = new Html5Qrcode("reader");
+scanner.start({facingMode:"environment"},{fps:10},
+(decodedText)=>{
+let url=new URL(decodedText);
+let id=url.searchParams.get("id");
+if(id && data[id]){
+selectEq(id);
+scanner.stop();
 }
-});
-window.location.href=`mailto:?subject=Equipment Report&body=${encodeURIComponent(body)}`;
-}
-
-function seed(){
-
-let machines = {};
-
-let list = [
-"SCREEN Truepress Jet520HD",
-"Océ VarioStream 7450",
-"Roll Cart",
-"MCS Hawk",
-"Videojet 4320",
-"MSE Roll-fed Inserter",
-"MSE Sheet-fed Inserter",
-"Flowmaster RS Inserter",
-"Flowmaster RS Inserter Advanced",
-"BlueCrest Rival",
-"Bowe Fusion Inserter",
-"Bell and Howell Inserter",
-"Universal Friction Feeder",
-"Pitney Bowes R750 Meter",
-"Baum Folder 8-Page",
-"Baum Folder 16-Page",
-"Baum Folder F&R",
-"Baum Slit/Score/Perf",
-"Baum Gate Fold",
-"Baum Continuous Feed",
-"Continuous Cutter",
-"Continuous Cutter Signoff",
-"Spedo Pin-less Cutter",
-"ESP 400 Unwind",
-"MBO Folder Plus",
-"MBO Accumulator",
-"Speedo Merger",
-"MBO High-Speed Line",
-"Pick & Place System",
-"AT-112 Affixer",
-"Tabber/Labeler"
-];
-
-let counts = [2,4,1,1,4,2,2,3,1,1,1,2,20,1,6,3,5,2,2,1,5,1,2,8,1,2,4,1,3,1,7];
-
-let id = 1;
-
-list.forEach((name,i)=>{
-for(let x=0;x<counts[i];x++){
-let eq = "EQ-"+String(id).padStart(3,'0');
-machines[eq] = {name:name};
-id++;
-}
-});
-
-Object.keys(machines).forEach(k=>{
-db.collection("machines").doc(k).set(machines[k]);
-});
-
-alert("FULL Equipment Loaded");
-}
-  function deleteEquipment(){
-
-if(!current){
-alert("No equipment selected");
-return;
-}
-
-let confirmDelete = confirm("Are you sure you want to DELETE this equipment?\n\n" + current);
-
-if(!confirmDelete) return;
-
-db.collection("machines").doc(current).delete().then(()=>{
-
-alert("Deleted: " + current);
-
-// remove from local data
-delete data[current];
-
-// reload dropdown
-populate();
-
-// select next available
-let keys = Object.keys(data);
-if(keys.length > 0){
-selectEq(keys[0]);
-} else {
-eqTitle.innerText="";
-eqInfo.innerText="";
-log.innerHTML="";
-}
-
-dashboard();
-alertsBuild();
-
 });
 }
 </script>
