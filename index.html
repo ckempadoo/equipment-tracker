@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<!-- QR Scanner -->
+<!-- QR -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
@@ -20,27 +20,68 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// SIMPLE USER SYSTEM
+const users = {
+  "admin@dmd.com": "1234",
+  "tech@dmd.com": "1234"
+};
 </script>
 
 <style>
 body { font-family: Arial; margin:0; background:#f4f6f8; }
+
+/* HEADER */
+.header {
+  background:#1f2937;
+  color:white;
+  padding:15px;
+  font-size:20px;
+}
+
+/* CONTENT */
 .container { padding:20px; }
-.card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
-button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
-input, select { padding:8px; margin-top:5px; width:100%; }
+
+.card {
+  background:white;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:10px;
+}
+
+button {
+  padding:8px;
+  margin-top:5px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:6px;
+}
+
+input, select {
+  padding:8px;
+  margin-top:5px;
+  width:100%;
+}
+
 #reader { margin-top:10px; }
 </style>
 </head>
 
 <body>
 
+<div class="header">
+DIRECT MAIL DEPOT - Equipment Tracker
+</div>
+
 <div class="container">
 
 <!-- LOGIN -->
 <div id="loginBox" class="card">
 <h3>Login</h3>
-<input id="username" placeholder="Your Name">
-<button onclick="login()">Enter</button>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
 </div>
 
 <div id="app" style="display:none;">
@@ -93,16 +134,15 @@ let user="";
 let data={};
 let current="";
 
-// LOGIN
+// LOGIN SYSTEM
 function login(){
-let name = document.getElementById("username").value;
 
-if(name===""){
-alert("Enter your name");
-return;
-}
+let email = document.getElementById("email").value;
+let pass = document.getElementById("password").value;
 
-user = name;
+if(users[email] && users[email] === pass){
+
+user = email;
 
 document.getElementById("loginBox").style.display="none";
 document.getElementById("app").style.display="block";
@@ -110,6 +150,11 @@ document.getElementById("app").style.display="block";
 document.getElementById("welcome").innerText = "Welcome " + user;
 
 load();
+
+}else{
+alert("Invalid login");
+}
+
 }
 
 // LOAD
@@ -213,7 +258,7 @@ box.innerHTML += `<li>${id} - ${e.name} due soon</li>`;
 });
 }
 
-// QR SCANNER
+// QR
 function startScanner(){
 const scanner = new Html5Qrcode("reader");
 
