@@ -169,6 +169,7 @@ selectEq(Object.keys(data)[0]);
 }
 
 function seed(){
+alert("BUTTON WORKS");
 
 let machines = {};
 let list = ["Machine A","Machine B","Machine C"];
@@ -182,6 +183,8 @@ Object.keys(machines).forEach(k=>{
 db.collection("machines").doc(k).set(machines[k]);
 });
 
+alert("Loaded");
+}
 alert("Loaded");
 }
 </script>
