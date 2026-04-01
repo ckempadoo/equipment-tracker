@@ -8,6 +8,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<!-- QR Scanner -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBhkaJGgEvon9hC5y5LMXRMf01iaIL0mkU",
@@ -25,6 +28,7 @@ body { font-family: Arial; margin:0; background:#f4f6f8; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
 button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
 input, select { padding:8px; margin-top:5px; width:100%; }
+#reader { margin-top:10px; }
 </style>
 </head>
 
@@ -63,15 +67,15 @@ input, select { padding:8px; margin-top:5px; width:100%; }
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
 <button onclick="seed()">Load Equipment</button>
+<button onclick="startScanner()">Scan QR</button>
+<div id="reader"></div>
 </div>
 
 <!-- DETAILS -->
 <div class="card">
 <h3 id="eqTitle"></h3>
-
 <input id="note" placeholder="Add note">
 <input type="date" id="dueDate">
-
 <button onclick="addNote()">Save</button>
 </div>
 
@@ -108,7 +112,7 @@ document.getElementById("welcome").innerText = "Welcome " + user;
 load();
 }
 
-// LOAD DATA
+// LOAD
 function load(){
 db.collection("machines").get().then(snap=>{
 data={};
@@ -124,7 +128,7 @@ alertsBuild();
 });
 }
 
-// POPULATE DROPDOWN
+// DROPDOWN
 function populate(){
 let list = document.getElementById("equipList");
 list.innerHTML="";
@@ -134,7 +138,7 @@ list.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 });
 }
 
-// SELECT EQUIPMENT
+// SELECT
 function selectEq(id){
 current = id;
 
@@ -148,7 +152,7 @@ logBox.innerHTML += `<li>${x}</li>`;
 });
 }
 
-// ADD NOTE + DUE DATE
+// SAVE
 function addNote(){
 let note = document.getElementById("note").value;
 let due = document.getElementById("dueDate").value;
@@ -176,7 +180,6 @@ function dashboard(){
 let overdue=0, soon=0, ok=0;
 
 Object.values(data).forEach(e=>{
-
 if(!e.nextServiceDue){ ok++; return; }
 
 let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
@@ -184,7 +187,6 @@ let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
 if(d<0) overdue++;
 else if(d<5) soon++;
 else ok++;
-
 });
 
 document.getElementById("dash").innerHTML =
@@ -198,7 +200,6 @@ box.innerHTML="";
 
 Object.keys(data).forEach(id=>{
 let e=data[id];
-
 if(!e.nextServiceDue) return;
 
 let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
@@ -212,9 +213,26 @@ box.innerHTML += `<li>${id} - ${e.name} due soon</li>`;
 });
 }
 
-// SEED DATA
-function seed(){
+// QR SCANNER
+function startScanner(){
+const scanner = new Html5Qrcode("reader");
 
+scanner.start({ facingMode: "environment" }, { fps: 10 },
+(decodedText) => {
+
+let url = new URL(decodedText);
+let id = url.searchParams.get("id");
+
+if(id && data[id]){
+selectEq(id);
+scanner.stop();
+}
+
+});
+}
+
+// SEED
+function seed(){
 let machines = {
 "EQ-001":{name:"Machine A"},
 "EQ-002":{name:"Machine B"},
