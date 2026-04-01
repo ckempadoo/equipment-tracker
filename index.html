@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>DMD Equipment Tracker</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -31,6 +32,7 @@ input, select { padding:8px; margin-top:5px; width:100%; }
 
 <div class="container">
 
+<!-- LOGIN -->
 <div id="loginBox" class="card">
 <h3>Login</h3>
 <input id="username" placeholder="Your Name">
@@ -39,22 +41,41 @@ input, select { padding:8px; margin-top:5px; width:100%; }
 
 <div id="app" style="display:none;">
 
+<!-- WELCOME -->
 <div class="card">
 <h3 id="welcome"></h3>
 </div>
 
+<!-- DASHBOARD -->
+<div class="card">
+<h3>Dashboard</h3>
+<div id="dash"></div>
+</div>
+
+<!-- ALERTS -->
+<div class="card">
+<h3>Alerts</h3>
+<ul id="alerts"></ul>
+</div>
+
+<!-- EQUIPMENT -->
 <div class="card">
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
 <button onclick="seed()">Load Equipment</button>
 </div>
 
+<!-- DETAILS -->
 <div class="card">
 <h3 id="eqTitle"></h3>
+
 <input id="note" placeholder="Add note">
-<button onclick="addNote()">Save Note</button>
+<input type="date" id="dueDate">
+
+<button onclick="addNote()">Save</button>
 </div>
 
+<!-- LOG -->
 <div class="card">
 <h3>Log</h3>
 <ul id="log"></ul>
@@ -68,6 +89,7 @@ let user="";
 let data={};
 let current="";
 
+// LOGIN
 function login(){
 let name = document.getElementById("username").value;
 
@@ -86,6 +108,7 @@ document.getElementById("welcome").innerText = "Welcome " + user;
 load();
 }
 
+// LOAD DATA
 function load(){
 db.collection("machines").get().then(snap=>{
 data={};
@@ -95,9 +118,13 @@ populate();
 
 let first = Object.keys(data)[0];
 if(first) selectEq(first);
+
+dashboard();
+alertsBuild();
 });
 }
 
+// POPULATE DROPDOWN
 function populate(){
 let list = document.getElementById("equipList");
 list.innerHTML="";
@@ -107,6 +134,7 @@ list.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 });
 }
 
+// SELECT EQUIPMENT
 function selectEq(id){
 current = id;
 
@@ -120,8 +148,10 @@ logBox.innerHTML += `<li>${x}</li>`;
 });
 }
 
+// ADD NOTE + DUE DATE
 function addNote(){
 let note = document.getElementById("note").value;
+let due = document.getElementById("dueDate").value;
 
 if(note==="") return;
 
@@ -130,15 +160,60 @@ e.log = e.log || [];
 
 e.log.push(note + " - " + user);
 
+if(due){
+e.nextServiceDue = new Date(due).toISOString();
+}
+
 db.collection("machines").doc(current).set(e).then(()=>{
 selectEq(current);
 document.getElementById("note").value="";
+load();
 });
 }
 
-function seed(){
+// DASHBOARD
+function dashboard(){
+let overdue=0, soon=0, ok=0;
 
-alert("Loading Equipment...");
+Object.values(data).forEach(e=>{
+
+if(!e.nextServiceDue){ ok++; return; }
+
+let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
+
+if(d<0) overdue++;
+else if(d<5) soon++;
+else ok++;
+
+});
+
+document.getElementById("dash").innerHTML =
+"Overdue: "+overdue+" | Soon: "+soon+" | OK: "+ok;
+}
+
+// ALERTS
+function alertsBuild(){
+let box = document.getElementById("alerts");
+box.innerHTML="";
+
+Object.keys(data).forEach(id=>{
+let e=data[id];
+
+if(!e.nextServiceDue) return;
+
+let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
+
+if(d<0){
+box.innerHTML += `<li>${id} - ${e.name} OVERDUE</li>`;
+}
+else if(d<5){
+box.innerHTML += `<li>${id} - ${e.name} due soon</li>`;
+}
+});
+}
+
+// SEED DATA
+function seed(){
 
 let machines = {
 "EQ-001":{name:"Machine A"},
@@ -150,10 +225,8 @@ Object.keys(machines).forEach(id=>{
 db.collection("machines").doc(id).set(machines[id]);
 });
 
-alert("Loaded!");
-
+alert("Equipment Loaded");
 load();
-
 }
 </script>
 
