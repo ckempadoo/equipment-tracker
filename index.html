@@ -20,51 +20,39 @@ const db = firebase.firestore();
 
 <style>
 body { font-family: Arial; margin:0; background:#f4f6f8; }
-.header { background:#1f2937; color:white; padding:15px; display:flex; align-items:center; gap:10px;}
 .container { padding:20px; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
-button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;}
-input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; width:100%; }
+button { padding:8px; margin-top:5px; background:#2563eb; color:white; border:none; border-radius:6px; }
+input, select { padding:8px; margin-top:5px; width:100%; }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-<h2>DMD Equipment Tracker</h2>
-</div>
-
 <div class="container">
 
-<div id="login" class="card">
+<div id="loginBox" class="card">
 <h3>Login</h3>
 <input id="username" placeholder="Your Name">
 <button onclick="login()">Enter</button>
 </div>
 
-<div id="main" style="display:none;">
+<div id="app" style="display:none;">
+
+<div class="card">
+<h3 id="welcome"></h3>
+</div>
 
 <div class="card">
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
+<button onclick="seed()">Load Equipment</button>
 </div>
 
 <div class="card">
 <h3 id="eqTitle"></h3>
-<p id="eqInfo"></p>
-
-<input id="serial" placeholder="Serial Number">
-<input id="notes" placeholder="Notes">
-<input type="date" id="dueDate">
-
-<button onclick="saveDetails()">Save</button>
-<button onclick="archiveEquipment()" style="background:#f59e0b;">Archive</button>
-</div>
-
-<div class="card">
-<h3>Maintenance</h3>
-<input id="task" placeholder="Enter task">
-<button onclick="addTask()">Add</button>
+<input id="note" placeholder="Add note">
+<button onclick="addNote()">Save Note</button>
 </div>
 
 <div class="card">
@@ -72,22 +60,28 @@ input, select { padding:8px; margin-top:5px; border-radius:6px; border:1px solid
 <ul id="log"></ul>
 </div>
 
-<div class="card">
-<button onclick="seed()">Load Equipment</button>
-</div>
-
 </div>
 </div>
 
 <script>
-let user="", data={}, current="";
+let user="";
+let data={};
+let current="";
 
 function login(){
-user = username.value.trim();
-if(!user){ alert("Enter your name"); return; }
+let name = document.getElementById("username").value;
 
-login.style.display="none";
-main.style.display="block";
+if(name===""){
+alert("Enter your name");
+return;
+}
+
+user = name;
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("app").style.display="block";
+
+document.getElementById("welcome").innerText = "Welcome " + user;
 
 load();
 }
@@ -96,6 +90,7 @@ function load(){
 db.collection("machines").get().then(snap=>{
 data={};
 snap.forEach(d=>data[d.id]=d.data());
+
 populate();
 
 let first = Object.keys(data)[0];
@@ -104,88 +99,61 @@ if(first) selectEq(first);
 }
 
 function populate(){
-equipList.innerHTML="";
+let list = document.getElementById("equipList");
+list.innerHTML="";
+
 Object.keys(data).forEach(id=>{
-if(data[id].archived) return;
-equipList.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
+list.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 });
 }
 
 function selectEq(id){
-current=id;
-let e=data[id];
+current = id;
 
-eqTitle.innerText=e.name||"";
-eqInfo.innerText=id;
+document.getElementById("eqTitle").innerText = data[id].name;
 
-serial.value=e.serial||"";
-notes.value=e.notes||"";
-dueDate.value=e.nextServiceDue?e.nextServiceDue.split("T")[0]:"";
+let logBox = document.getElementById("log");
+logBox.innerHTML="";
 
-log.innerHTML="";
-(e.maintenance||[]).forEach(x=>{
-if(typeof x==="string"){
-log.innerHTML+=`<li>${x}</li>`;
-}else{
-log.innerHTML+=`<li>${x.task} | ${x.date} | ${x.user}</li>`;
-}
+(data[id].log||[]).forEach(x=>{
+logBox.innerHTML += `<li>${x}</li>`;
 });
 }
 
-function saveDetails(){
-let e=data[current];
-e.serial=serial.value;
-e.notes=notes.value;
-if(dueDate.value) e.nextServiceDue=new Date(dueDate.value).toISOString();
+function addNote(){
+let note = document.getElementById("note").value;
 
-db.collection("machines").doc(current).set(e).then(()=>alert("Saved"));
-}
+if(note==="") return;
 
-function addTask(){
-let t=task.value;
-if(!t) return;
+let e = data[current];
+e.log = e.log || [];
 
-let e=data[current];
-e.maintenance=e.maintenance||[];
-
-e.maintenance.push({
-task:t,
-date:new Date().toLocaleString(),
-user:user
-});
-
-db.collection("machines").doc(current).set(e).then(()=>selectEq(current));
-}
-
-function archiveEquipment(){
-let e=data[current];
-e.archived=true;
+e.log.push(note + " - " + user);
 
 db.collection("machines").doc(current).set(e).then(()=>{
-delete data[current];
-populate();
-selectEq(Object.keys(data)[0]);
+selectEq(current);
+document.getElementById("note").value="";
 });
 }
 
 function seed(){
-alert("BUTTON WORKS");
 
-let machines = {};
-let list = ["Machine A","Machine B","Machine C"];
+alert("Loading Equipment...");
 
-list.forEach((name,i)=>{
-let id="EQ-"+String(i+1).padStart(3,'0');
-machines[id]={name:name};
+let machines = {
+"EQ-001":{name:"Machine A"},
+"EQ-002":{name:"Machine B"},
+"EQ-003":{name:"Machine C"}
+};
+
+Object.keys(machines).forEach(id=>{
+db.collection("machines").doc(id).set(machines[id]);
 });
 
-Object.keys(machines).forEach(k=>{
-db.collection("machines").doc(k).set(machines[k]);
-});
+alert("Loaded!");
 
-alert("Loaded");
-}
-alert("Loaded");
+load();
+
 }
 </script>
 
