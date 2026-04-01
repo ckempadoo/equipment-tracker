@@ -18,15 +18,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// USERS
 const users = {
   "admin@dmd.com": "1234"
 };
-
-// EMAIL LIST (CHANGE THIS)
-const alertEmails = [
-  "youremail@company.com"
-];
 </script>
 
 <style>
@@ -39,13 +33,17 @@ body { font-family: Arial; margin:0; background:#f4f6f8; }
 .card { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
 
 button {
-  padding:8px;
+  padding:6px;
   margin-top:5px;
+  margin-right:5px;
   background:#2563eb;
   color:white;
   border:none;
   border-radius:6px;
+  cursor:pointer;
 }
+
+.delete { background:#dc2626; }
 
 input, select { padding:8px; margin-top:5px; width:100%; }
 
@@ -78,8 +76,6 @@ DIRECT MAIL DEPOT - Equipment Tracker
 <div class="card">
 <h3>Dashboard</h3>
 <div id="dash"></div>
-<button onclick="runAlerts()">Check Alerts</button>
-<button onclick="printAll()">Print All Report</button>
 </div>
 
 <!-- EQUIPMENT -->
@@ -87,7 +83,7 @@ DIRECT MAIL DEPOT - Equipment Tracker
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
 <button onclick="seed()">Load Equipment</button>
-<button onclick="printOne()">Print This Machine</button>
+<button onclick="archiveEq()">Archive This Equipment</button>
 </div>
 
 <!-- DETAILS -->
@@ -136,7 +132,12 @@ alert("Invalid login");
 function load(){
 db.collection("machines").get().then(snap=>{
 data={};
-snap.forEach(d=>data[d.id]=d.data());
+snap.forEach(d=>{
+let val = d.data();
+if(!val.archived){ // hide archived
+data[d.id]=val;
+}
+});
 
 populate();
 
@@ -160,19 +161,45 @@ list.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 // SELECT
 function selectEq(id){
 current = id;
-
 let e = data[id];
 
 document.getElementById("eqTitle").innerText = e.name;
 document.getElementById("machineNum").value = e.machine || "";
 document.getElementById("serialNum").value = e.serial || "";
 
+renderLogs();
+}
+
+// RENDER LOGS WITH EDIT/DELETE
+function renderLogs(){
+let e = data[current];
 let logBox = document.getElementById("log");
 logBox.innerHTML="";
 
-(e.log||[]).forEach(x=>{
-logBox.innerHTML += `<li>${x}</li>`;
+(e.log||[]).forEach((x,i)=>{
+logBox.innerHTML += `
+<li>
+<input value="${x}" id="log${i}">
+<button onclick="updateLog(${i})">Update</button>
+<button class="delete" onclick="deleteLog(${i})">Delete</button>
+</li>`;
 });
+}
+
+// UPDATE LOG
+function updateLog(i){
+let e = data[current];
+e.log[i] = document.getElementById("log"+i).value;
+
+db.collection("machines").doc(current).set(e).then(load);
+}
+
+// DELETE LOG
+function deleteLog(i){
+let e = data[current];
+e.log.splice(i,1);
+
+db.collection("machines").doc(current).set(e).then(load);
 }
 
 // SAVE
@@ -203,6 +230,20 @@ load();
 });
 }
 
+// ARCHIVE EQUIPMENT
+function archiveEq(){
+
+if(!confirm("Archive this equipment?")) return;
+
+let e = data[current];
+e.archived = true;
+
+db.collection("machines").doc(current).set(e).then(()=>{
+alert("Archived");
+load();
+});
+}
+
 // DASHBOARD
 function dashboard(){
 let overdue=0, soon=0, ok=0;
@@ -222,69 +263,6 @@ document.getElementById("dash").innerHTML = `
 <div class="box yellow">Due Soon: ${soon}</div>
 <div class="box green">OK: ${ok}</div>
 `;
-}
-
-// EMAIL ALERT SIMULATION
-function runAlerts(){
-
-let msg = "ALERTS:\n\n";
-
-Object.keys(data).forEach(id=>{
-let e=data[id];
-if(!e.nextServiceDue) return;
-
-let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-
-if(d<0){
-msg += id + " OVERDUE\n";
-}
-else if(d<5){
-msg += id + " due soon\n";
-}
-});
-
-alert(msg || "No alerts");
-}
-
-// PRINT ONE
-function printOne(){
-let e = data[current];
-
-let w = window.open("");
-
-w.document.write("<h2>"+current+" - "+e.name+"</h2>");
-w.document.write("<p>Machine: "+(e.machine||"")+"</p>");
-w.document.write("<p>Serial: "+(e.serial||"")+"</p>");
-
-w.document.write("<h3>Log</h3>");
-
-(e.log||[]).forEach(x=>{
-w.document.write("<p>"+x+"</p>");
-});
-
-w.print();
-}
-
-// PRINT ALL
-function printAll(){
-
-let w = window.open("");
-
-Object.keys(data).forEach(id=>{
-let e=data[id];
-
-w.document.write("<h2>"+id+" - "+e.name+"</h2>");
-w.document.write("<p>Machine: "+(e.machine||"")+"</p>");
-w.document.write("<p>Serial: "+(e.serial||"")+"</p>");
-
-(e.log||[]).forEach(x=>{
-w.document.write("<p>"+x+"</p>");
-});
-
-w.document.write("<hr>");
-});
-
-w.print();
 }
 
 // SEED
