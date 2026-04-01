@@ -8,9 +8,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<!-- QR -->
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBhkaJGgEvon9hC5y5LMXRMf01iaIL0mkU",
@@ -21,25 +18,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// SIMPLE USER SYSTEM
 const users = {
-  "admin@dmd.com": "1234",
-  "tech@dmd.com": "1234"
+  "admin@dmd.com": "1234"
 };
 </script>
 
 <style>
 body { font-family: Arial; margin:0; background:#f4f6f8; }
 
-/* HEADER */
 .header {
-  background:#1f2937;
+  background:#1e3a8a;
   color:white;
   padding:15px;
   font-size:20px;
 }
 
-/* CONTENT */
 .container { padding:20px; }
 
 .card {
@@ -64,7 +57,11 @@ input, select {
   width:100%;
 }
 
-#reader { margin-top:10px; }
+/* DASHBOARD COLORS */
+.box { padding:15px; border-radius:8px; color:white; margin-bottom:5px; }
+.red { background:#dc2626; }
+.yellow { background:#facc15; color:black; }
+.green { background:#16a34a; }
 </style>
 </head>
 
@@ -86,21 +83,10 @@ DIRECT MAIL DEPOT - Equipment Tracker
 
 <div id="app" style="display:none;">
 
-<!-- WELCOME -->
-<div class="card">
-<h3 id="welcome"></h3>
-</div>
-
 <!-- DASHBOARD -->
 <div class="card">
 <h3>Dashboard</h3>
 <div id="dash"></div>
-</div>
-
-<!-- ALERTS -->
-<div class="card">
-<h3>Alerts</h3>
-<ul id="alerts"></ul>
 </div>
 
 <!-- EQUIPMENT -->
@@ -108,16 +94,19 @@ DIRECT MAIL DEPOT - Equipment Tracker
 <h3>Select Equipment</h3>
 <select id="equipList" onchange="selectEq(this.value)"></select>
 <button onclick="seed()">Load Equipment</button>
-<button onclick="startScanner()">Scan QR</button>
-<div id="reader"></div>
 </div>
 
 <!-- DETAILS -->
 <div class="card">
 <h3 id="eqTitle"></h3>
+
+<input id="machineNum" placeholder="Machine Number">
+<input id="serialNum" placeholder="Serial Number">
+
 <input id="note" placeholder="Add note">
 <input type="date" id="dueDate">
-<button onclick="addNote()">Save</button>
+
+<button onclick="saveAll()">Save Details</button>
 </div>
 
 <!-- LOG -->
@@ -134,9 +123,8 @@ let user="";
 let data={};
 let current="";
 
-// LOGIN SYSTEM
+// LOGIN
 function login(){
-
 let email = document.getElementById("email").value;
 let pass = document.getElementById("password").value;
 
@@ -147,14 +135,11 @@ user = email;
 document.getElementById("loginBox").style.display="none";
 document.getElementById("app").style.display="block";
 
-document.getElementById("welcome").innerText = "Welcome " + user;
-
 load();
 
 }else{
 alert("Invalid login");
 }
-
 }
 
 // LOAD
@@ -169,7 +154,6 @@ let first = Object.keys(data)[0];
 if(first) selectEq(first);
 
 dashboard();
-alertsBuild();
 });
 }
 
@@ -187,44 +171,57 @@ list.innerHTML += `<option value="${id}">${id} - ${data[id].name||""}</option>`;
 function selectEq(id){
 current = id;
 
-document.getElementById("eqTitle").innerText = data[id].name;
+let e = data[id];
+
+document.getElementById("eqTitle").innerText = e.name;
+
+document.getElementById("machineNum").value = e.machine || "";
+document.getElementById("serialNum").value = e.serial || "";
 
 let logBox = document.getElementById("log");
 logBox.innerHTML="";
 
-(data[id].log||[]).forEach(x=>{
+(e.log||[]).forEach(x=>{
 logBox.innerHTML += `<li>${x}</li>`;
 });
 }
 
-// SAVE
-function addNote(){
+// SAVE ALL
+function saveAll(){
+
 let note = document.getElementById("note").value;
 let due = document.getElementById("dueDate").value;
-
-if(note==="") return;
+let machine = document.getElementById("machineNum").value;
+let serial = document.getElementById("serialNum").value;
 
 let e = data[current];
+
+e.machine = machine;
+e.serial = serial;
+
 e.log = e.log || [];
 
+if(note){
 e.log.push(note + " - " + user);
+}
 
 if(due){
 e.nextServiceDue = new Date(due).toISOString();
 }
 
 db.collection("machines").doc(current).set(e).then(()=>{
-selectEq(current);
 document.getElementById("note").value="";
 load();
 });
 }
 
-// DASHBOARD
+// DASHBOARD (COLOR)
 function dashboard(){
+
 let overdue=0, soon=0, ok=0;
 
 Object.values(data).forEach(e=>{
+
 if(!e.nextServiceDue){ ok++; return; }
 
 let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
@@ -232,48 +229,15 @@ let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
 if(d<0) overdue++;
 else if(d<5) soon++;
 else ok++;
-});
-
-document.getElementById("dash").innerHTML =
-"Overdue: "+overdue+" | Soon: "+soon+" | OK: "+ok;
-}
-
-// ALERTS
-function alertsBuild(){
-let box = document.getElementById("alerts");
-box.innerHTML="";
-
-Object.keys(data).forEach(id=>{
-let e=data[id];
-if(!e.nextServiceDue) return;
-
-let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-
-if(d<0){
-box.innerHTML += `<li>${id} - ${e.name} OVERDUE</li>`;
-}
-else if(d<5){
-box.innerHTML += `<li>${id} - ${e.name} due soon</li>`;
-}
-});
-}
-
-// QR
-function startScanner(){
-const scanner = new Html5Qrcode("reader");
-
-scanner.start({ facingMode: "environment" }, { fps: 10 },
-(decodedText) => {
-
-let url = new URL(decodedText);
-let id = url.searchParams.get("id");
-
-if(id && data[id]){
-selectEq(id);
-scanner.stop();
-}
 
 });
+
+document.getElementById("dash").innerHTML = `
+<div class="box red">Overdue: ${overdue}</div>
+<div class="box yellow">Due Soon: ${soon}</div>
+<div class="box green">OK: ${ok}</div>
+`;
+
 }
 
 // SEED
