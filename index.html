@@ -1,151 +1,129 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <html>
 <head>
   <title>Equipment Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <style>
-body {
-  font-family: 'Segoe UI', Arial;
-  background: #eef1f5;
-  margin: 0;
-  padding: 15px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.card {
-  background: #fff;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-}
-
-.machine-title {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.status {
-  font-weight: bold;
-}
-
-.overdue { color: #e74c3c; }
-.soon { color: #f39c12; }
-.ok { color: #27ae60; }
-
-button {
-  margin-top: 6px;
-  padding: 8px;
-  border: none;
-  border-radius: 6px;
-  background: #2c3e50;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #34495e;
-}
-
-input {
-  padding: 6px;
-  margin-top: 5px;
-  width: 100%;
-}
-
-.issue {
-  background: #f8f9fa;
-  padding: 8px;
-  margin-top: 5px;
-  border-left: 4px solid #3498db;
-  border-radius: 5px;
-}
-</style>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial;
+      background: #eef1f5;
+      margin: 0;
+      padding: 15px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .card {
+      background: #fff;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+    .machine-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
     .status {
       font-weight: bold;
     }
-    .overdue { color: red; }
-    .soon { color: orange; }
-    .ok { color: green; }
+    .overdue { color: #e74c3c; }
+    .soon { color: #f39c12; }
+    .ok { color: #27ae60; }
     input {
-      padding: 5px;
+      padding: 6px;
       margin-top: 5px;
       width: 100%;
+      box-sizing: border-box;
     }
     button {
-      margin-top: 5px;
+      margin-top: 6px;
       padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #2c3e50;
+      color: white;
+      cursor: pointer;
       width: 100%;
     }
+    button:hover {
+      background: #34495e;
+    }
+    .issue {
+      background: #f8f9fa;
+      padding: 8px;
+      margin-top: 5px;
+      border-left: 4px solid #3498db;
+      border-radius: 5px;
+    }
+    #summary { display:flex; justify-content: space-around; margin-bottom:15px; }
+    #summary .card { color:white; flex:1; text-align:center; margin:0 5px; padding:10px; border-radius:10px; }
+    #overdue-card { background:#e74c3c; }
+    #soon-card { background:#f39c12; }
+    #ok-card { background:#27ae60; }
   </style>
 </head>
-
 <body>
 
 <h1>Equipment Dashboard</h1>
 
-<div id="summary"></div>
+<!-- Summary Cards -->
+<div id="summary">
+  <div id="overdue-card" class="card">Overdue: 0</div>
+  <div id="soon-card" class="card">Due Soon: 0</div>
+  <div id="ok-card" class="card">OK: 0</div>
+</div>
+
+<!-- Add Machine Form -->
+<div class="card">
+  <h3>Add Machine</h3>
+  <input type="text" id="newMachineName" placeholder="Machine Name">
+  <input type="text" id="newMachineSerial" placeholder="Serial Number">
+  <button onclick="addMachine()">Add Machine</button>
+</div>
+
+<!-- Machine List -->
 <div id="machines"></div>
 
 <script>
-
-// LOAD OR DEFAULT DATA
+// Load or initialize data
 let saved = localStorage.getItem("equipmentData");
-
 let data = saved ? JSON.parse(saved) : {
-  "HP Indigo 7K": { nextServiceDue: "2026-04-15" },
-  "HP Indigo 18K": { nextServiceDue: "2026-04-10" },
-  "HP Indigo 120K": { nextServiceDue: "2026-04-20" }
+  "SN1001": { name: "HP Indigo 7K", serial: "SN1001", nextServiceDue: "2026-04-15", issues: [] },
+  "SN1002": { name: "HP Indigo 18K", serial: "SN1002", nextServiceDue: "2026-04-10", issues: [] },
+  "SN1003": { name: "HP Indigo 120K", serial: "SN1003", nextServiceDue: "2026-04-20", issues: [] }
 };
 
-// SAVE FUNCTION
-function saveData(){
-  localStorage.setItem("equipmentData", JSON.stringify(data));
-}
+// Save function
+function saveData(){ localStorage.setItem("equipmentData", JSON.stringify(data)); }
 
-// DASHBOARD SUMMARY
+// Dashboard summary
 function dashboard(){
   let overdue=0, soon=0, ok=0;
-
   Object.values(data).forEach(e=>{
     if(!e.nextServiceDue){ ok++; return; }
-
     let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-
     if(d<0) overdue++;
     else if(d<5) soon++;
     else ok++;
   });
-
-  document.getElementById("summary").innerHTML = `
-    <div class="card">
-      <p class="status overdue">Overdue: ${overdue}</p>
-      <p class="status soon">Due Soon: ${soon}</p>
-      <p class="status ok">OK: ${ok}</p>
-    </div>
-  `;
+  document.getElementById("overdue-card").innerText = "Overdue: "+overdue;
+  document.getElementById("soon-card").innerText = "Due Soon: "+soon;
+  document.getElementById("ok-card").innerText = "OK: "+ok;
 }
 
-// RENDER MACHINES
+// Render machine list
 function renderMachines(){
   let container = document.getElementById("machines");
   container.innerHTML = "";
 
-  Object.keys(data).forEach(name=>{
-    let e = data[name];
-
-    let d = (new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-
-    let statusText = "OK";
-    let statusClass = "ok";
-
-    if(d < 0){ statusText = "OVERDUE"; statusClass = "overdue"; }
-    else if(d < 5){ statusText = "DUE SOON"; statusClass = "soon"; }
+  Object.keys(data).forEach(serial=>{
+    let e = data[serial];
+    let d = e.nextServiceDue ? (new Date(e.nextServiceDue)-new Date())/(1000*60*60*24) : 999;
+    let statusText="OK", statusClass="ok";
+    if(d<0){ statusText="OVERDUE"; statusClass="overdue"; }
+    else if(d<5){ statusText="DUE SOON"; statusClass="soon"; }
 
     let issuesHTML = "";
     if(e.issues){
@@ -156,61 +134,59 @@ function renderMachines(){
 
     let div = document.createElement("div");
     div.className = "card";
-
     div.innerHTML = `
-      <div class="machine-title">${name}</div>
+      <div class="machine-title">${e.name} (SN: ${e.serial})</div>
       <div class="status ${statusClass}">Status: ${statusText}</div>
       <div>Next Service: ${e.nextServiceDue || "Not Set"}</div>
-
-      <input type="date" onchange="updateDate('${name}', this.value)">
-      <button onclick="logIssue('${name}')">Log Issue</button>
-      <button onclick="markResolved('${name}')">Clear Issues</button>
-
+      <input type="date" onchange="updateDate('${serial}', this.value)">
+      <button onclick="logIssue('${serial}')">Log Issue</button>
+      <button onclick="markResolved('${serial}')">Clear Issues</button>
       ${issuesHTML}
     `;
-
     container.appendChild(div);
   });
 }
 
-// UPDATE DATE
-function updateDate(name, date){
-  data[name].nextServiceDue = date;
-  saveData();
-  renderMachines();
-  dashboard();
+// Add machine
+function addMachine(){
+  let name = document.getElementById("newMachineName").value.trim();
+  let serial = document.getElementById("newMachineSerial").value.trim();
+  if(!name || !serial){ alert("Please enter both name & serial"); return; }
+  if(data[serial]){ alert("Serial number already exists"); return; }
+
+  data[serial] = { name: name, serial: serial, nextServiceDue:"", issues: [] };
+  saveData(); renderMachines(); dashboard();
+  document.getElementById("newMachineName").value="";
+  document.getElementById("newMachineSerial").value="";
 }
 
-// LOG ISSUE
-function logIssue(name){
-  let issue = prompt("Enter issue for " + name);
+// Update date
+function updateDate(serial, date){
+  data[serial].nextServiceDue = date;
+  saveData(); renderMachines(); dashboard();
+}
+
+// Log issue
+function logIssue(serial){
+  let issue = prompt("Enter issue for " + data[serial].name);
   if(!issue) return;
-
-  if(!data[name].issues) data[name].issues = [];
-  data[name].issues.push({
-    text: issue,
-    date: new Date().toLocaleString()
-  });
-
-  saveData();
-  alert("Issue logged!");
+  if(!data[serial].issues) data[serial].issues=[];
+  data[serial].issues.push({text: issue, date: new Date().toLocaleString()});
+  saveData(); renderMachines(); dashboard();
 }
 
-function markResolved(name){
-  if(!data[name].issues) return;
-
-  if(confirm("Clear all issues for " + name + "?")){
-    data[name].issues = [];
-    localStorage.setItem("equipmentData", JSON.stringify(data));
-    renderMachines();
-    dashboard();
+// Clear issues
+function markResolved(serial){
+  if(!data[serial].issues || data[serial].issues.length===0) return;
+  if(confirm("Clear all issues for " + data[serial].name + "?")){
+    data[serial].issues = [];
+    saveData(); renderMachines(); dashboard();
   }
-}  
-// INIT
-renderMachines();
-dashboard();
+}
 
+// Initialize
+renderMachines(); dashboard();
 </script>
 
 </body>
-</html>
+</html></html>
