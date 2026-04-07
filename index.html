@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <html>
 <head>
   <title>Equipment Dashboard</title>
@@ -140,21 +141,32 @@ function renderMachines(){
 
     let d = (new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
 
+    let statusText = "OK";
     let statusClass = "ok";
-    if(d < 0) statusClass = "overdue";
-    else if(d < 5) statusClass = "soon";
+
+    if(d < 0){ statusText = "OVERDUE"; statusClass = "overdue"; }
+    else if(d < 5){ statusText = "DUE SOON"; statusClass = "soon"; }
+
+    let issuesHTML = "";
+    if(e.issues){
+      e.issues.forEach(i=>{
+        issuesHTML += `<div class="issue">${i.date}<br>${i.text}</div>`;
+      });
+    }
 
     let div = document.createElement("div");
     div.className = "card";
 
     div.innerHTML = `
-      <h3>${name}</h3>
-      <p class="status ${statusClass}">
-        Next Service: ${e.nextServiceDue || "Not Set"}
-      </p>
+      <div class="machine-title">${name}</div>
+      <div class="status ${statusClass}">Status: ${statusText}</div>
+      <div>Next Service: ${e.nextServiceDue || "Not Set"}</div>
 
       <input type="date" onchange="updateDate('${name}', this.value)">
       <button onclick="logIssue('${name}')">Log Issue</button>
+      <button onclick="markResolved('${name}')">Clear Issues</button>
+
+      ${issuesHTML}
     `;
 
     container.appendChild(div);
@@ -184,6 +196,16 @@ function logIssue(name){
   alert("Issue logged!");
 }
 
+function markResolved(name){
+  if(!data[name].issues) return;
+
+  if(confirm("Clear all issues for " + name + "?")){
+    data[name].issues = [];
+    localStorage.setItem("equipmentData", JSON.stringify(data));
+    renderMachines();
+    dashboard();
+  }
+}  
 // INIT
 renderMachines();
 dashboard();
