@@ -3,23 +3,68 @@
 <head>
   <title>Equipment Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 10px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+ <style>
+body {
+  font-family: 'Segoe UI', Arial;
+  background: #eef1f5;
+  margin: 0;
+  padding: 15px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.machine-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.status {
+  font-weight: bold;
+}
+
+.overdue { color: #e74c3c; }
+.soon { color: #f39c12; }
+.ok { color: #27ae60; }
+
+button {
+  margin-top: 6px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: #2c3e50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #34495e;
+}
+
+input {
+  padding: 6px;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.issue {
+  background: #f8f9fa;
+  padding: 8px;
+  margin-top: 5px;
+  border-left: 4px solid #3498db;
+  border-radius: 5px;
+}
+</style>
     .status {
       font-weight: bold;
     }
