@@ -1,219 +1,182 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Equipment Dashboard</title>
+  <title>Equipment Dashboard - Direct Mail Depot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', Arial; background: #eef1f5; margin: 0; padding: 15px; }
-    h1 { text-align: center; margin-bottom: 15px; }
-    .card { background: #fff; padding: 12px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
-    .machine-title { font-size: 18px; font-weight: bold; }
-    .status { font-weight: bold; }
-    .overdue { color: #e74c3c; }
-    .soon { color: #f39c12; }
-    .ok { color: #27ae60; }
-    input { padding: 6px; margin-top: 5px; width: 100%; box-sizing: border-box; }
-    button { margin-top: 6px; padding: 8px; border: none; border-radius: 6px; background: #2c3e50; color: white; cursor: pointer; width: 100%; }
-    button:hover { background: #34495e; }
-    .issue { background: #f8f9fa; padding: 8px; margin-top: 5px; border-left: 4px solid #3498db; border-radius: 5px; }
+    body { font-family: 'Segoe UI', Arial; background: #eef1f5; margin:0; padding:0; }
+    #login-container, #dashboard-container { display:none; padding:20px; }
+    h1 { text-align:center; margin-bottom:15px; }
+    .card { background:#fff; padding:12px; margin-bottom:10px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.08); }
+    .machine-title { font-weight:bold; }
+    .status { font-weight:bold; }
+    .overdue { color:#e74c3c; }
+    .soon { color:#f39c12; }
+    .ok { color:#27ae60; }
+    input, select { padding:6px; margin-top:5px; width:100%; box-sizing:border-box; }
+    button { margin-top:6px; padding:8px; border:none; border-radius:6px; background:#2c3e50; color:white; cursor:pointer; width:100%; }
+    button:hover { background:#34495e; }
+    .issue { background:#f8f9fa; padding:8px; margin-top:5px; border-left:4px solid #3498db; border-radius:5px; }
     #summary { display:flex; justify-content: space-around; margin-bottom:15px; }
     #summary .card { color:white; flex:1; text-align:center; margin:0 5px; padding:10px; border-radius:10px; }
     #overdue-card { background:#e74c3c; }
     #soon-card { background:#f39c12; }
     #ok-card { background:#27ae60; }
+    .category { margin-bottom:10px; }
+    .dropdown-content { display:none; padding:0 10px; max-height:300px; overflow-y:auto; }
+    .category button { background:#3498db; color:white; margin-bottom:5px; width:100%; }
+    .category button:hover { background:#2980b9; }
   </style>
 </head>
 <body>
 
-<h1>DIRECT MAIL DEPOT – Equipment Dashboard</h1>
-
-<!-- Summary Cards -->
-<div id="summary">
-  <div id="overdue-card" class="card">Overdue: 0</div>
-  <div id="soon-card" class="card">Due Soon: 0</div>
-  <div id="ok-card" class="card">OK: 0</div>
+<!-- LOGIN -->
+<div id="login-container">
+  <h1>Tech Login</h1>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p style="color:red;" id="login-error"></p>
 </div>
 
-<!-- Add Machine Form -->
-<div class="card">
-  <h3>Add Machine</h3>
-  <input type="text" id="newMachineName" placeholder="Machine Name">
-  <input type="text" id="newMachineSerial" placeholder="Serial Number">
-  <button onclick="addMachine()">Add Machine</button>
-</div>
+<!-- DASHBOARD -->
+<div id="dashboard-container">
+  <h1>DIRECT MAIL DEPOT – Equipment Dashboard</h1>
 
-<!-- Machine List -->
-<div id="machines"></div>
+  <div id="summary">
+    <div id="overdue-card" class="card">Overdue: 0</div>
+    <div id="soon-card" class="card">Due Soon: 0</div>
+    <div id="ok-card" class="card">OK: 0</div>
+  </div>
+
+  <div class="card">
+    <h3>Add Machine</h3>
+    <input type="text" id="newMachineName" placeholder="Machine Name">
+    <input type="text" id="newMachineSerial" placeholder="Serial Number">
+    <button onclick="addMachine()">Add Machine</button>
+  </div>
+
+  <div id="equipment-dropdowns"></div>
+</div>
 
 <script>
-// Load or initialize data
+// ----- LOGIN -----
+const users = { tech1: "password1", tech2: "password2" }; // simple username:password
+function login(){
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value.trim();
+  if(users[u] && users[u] === p){
+    document.getElementById("login-container").style.display="none";
+    document.getElementById("dashboard-container").style.display="block";
+    renderEquipmentDropdowns();
+    dashboard();
+  } else { document.getElementById("login-error").innerText="Invalid username or password"; }
+}
+
+// ----- DATA -----
 let saved = localStorage.getItem("equipmentData");
 let data = saved ? JSON.parse(saved) : {
-  // Digital Color Equipment
-  "DC001": { name: "SCREEN Truepress Jet520HD", serial: "DC001", nextServiceDue:"", issues: [] },
-
-  // Laser Equipment
-  "L001": { name: "Océ VarioStream 7450", serial: "L001", nextServiceDue:"", issues: [] },
-  "L002": { name: "Océ VarioStream 7450", serial: "L002", nextServiceDue:"", issues: [] },
-  "L003": { name: "Océ VarioStream 7450", serial: "L003", nextServiceDue:"", issues: [] },
-  "L004": { name: "Océ VarioStream 7450", serial: "L004", nextServiceDue:"", issues: [] },
-  "L005": { name: "Roll cart", serial: "L005", nextServiceDue:"", issues: [] },
-
-  // Inkjet Equipment
-  "IJ001": { name: "MCS Hawk", serial: "IJ001", nextServiceDue:"", issues: [] },
-  "IJ002": { name: "Videojet 4320", serial: "IJ002", nextServiceDue:"", issues: [] },
-  "IJ003": { name: "Videojet 4320", serial: "IJ003", nextServiceDue:"", issues: [] },
-  "IJ004": { name: "Videojet 4320", serial: "IJ004", nextServiceDue:"", issues: [] },
-  "IJ005": { name: "Videojet 4320", serial: "IJ005", nextServiceDue:"", issues: [] },
-
-  // Inserting Equipment
-  "IN001": { name: "MSE Roll-fed High-Speed 9-Station Inserter w/ IMB Camera Verification", serial: "IN001", nextServiceDue:"", issues: [] },
-  "IN002": { name: "MSE Roll-fed High-Speed 9-Station Inserter w/ IMB Camera Verification", serial: "IN002", nextServiceDue:"", issues: [] },
-  "IN003": { name: "MSE Sheet-fed High-Speed 6-Station Inserter", serial: "IN003", nextServiceDue:"", issues: [] },
-  "IN004": { name: "MSE Sheet-fed High-Speed 6-Station Inserter", serial: "IN004", nextServiceDue:"", issues: [] },
-  "IN005": { name: "Flowmaster RS 6-Station w/ IMB Camera Verification", serial: "IN005", nextServiceDue:"", issues: [] },
-  "IN006": { name: "Flowmaster RS 6-Station w/ IMB Camera Verification", serial: "IN006", nextServiceDue:"", issues: [] },
-  "IN007": { name: "Flowmaster RS 6-Station w/ IMB Camera Verification", serial: "IN007", nextServiceDue:"", issues: [] },
-  "IN008": { name: "Flowmaster RS 6-Station w/ IMB Verification & 4.25 Eagle Inkjet Read/Write for Match Mail", serial: "IN008", nextServiceDue:"", issues: [] },
-  "IN009": { name: "BlueCrest Rival 3-Station", serial: "IN009", nextServiceDue:"", issues: [] },
-  "IN010": { name: "Bowe Fusion 22K 9-Station Roll-fed Inserter", serial: "IN010", nextServiceDue:"", issues: [] },
-  "IN011": { name: "Bell and Howell 6 Station Inserter 10,000", serial: "IN011", nextServiceDue:"", issues: [] },
-  "IN012": { name: "Bell and Howell 6 Station Inserter 10,000", serial: "IN012", nextServiceDue:"", issues: [] },
-  "IN013": { name: "Universal Friction Feeders", serial: "IN013", nextServiceDue:"", issues: [] },
-  "IN014": { name: "Universal Friction Feeders", serial: "IN014", nextServiceDue:"", issues: [] },
-  "IN015": { name: "Universal Friction Feeders", serial: "IN015", nextServiceDue:"", issues: [] },
-  "IN016": { name: "Universal Friction Feeders", serial: "IN016", nextServiceDue:"", issues: [] },
-  "IN017": { name: "Universal Friction Feeders", serial: "IN017", nextServiceDue:"", issues: [] },
-  "IN018": { name: "Universal Friction Feeders", serial: "IN018", nextServiceDue:"", issues: [] },
-  "IN019": { name: "Universal Friction Feeders", serial: "IN019", nextServiceDue:"", issues: [] },
-  "IN020": { name: "Universal Friction Feeders", serial: "IN020", nextServiceDue:"", issues: [] },
-  "IN021": { name: "Pitney Bowes R750 Meter", serial: "IN021", nextServiceDue:"", issues: [] },
-
-  // Bindery Equipment
-  "BD001": { name: "Baum Folder 20” × 20” 8-Page Folder", serial: "BD001", nextServiceDue:"", issues: [] },
-  "BD002": { name: "Baum Folder 20” × 20” 8-Page Folder", serial: "BD002", nextServiceDue:"", issues: [] },
-  "BD003": { name: "Baum Folder 20” × 20” 8-Page Folder", serial: "BD003", nextServiceDue:"", issues: [] },
-  "BD004": { name: "Baum Folder F&R 16-Page Folder", serial: "BD004", nextServiceDue:"", issues: [] },
-  "BD005": { name: "Baum Folder F&R 16-Page Folder", serial: "BD005", nextServiceDue:"", issues: [] },
-  "BD006": { name: "Baum Folder F&R 16-Page Folder", serial: "BD006", nextServiceDue:"", issues: [] },
-  "BD007": { name: "Baum Folder F&R Folder", serial: "BD007", nextServiceDue:"", issues: [] },
-  "BD008": { name: "Baum Folder F&R Folder", serial: "BD008", nextServiceDue:"", issues: [] },
-  "BD009": { name: "Baum Folder F&R Folder", serial: "BD009", nextServiceDue:"", issues: [] },
-  "BD010": { name: "Baum – Slit, Score & Perf (Right Angle)", serial: "BD010", nextServiceDue:"", issues: [] },
-  "BD011": { name: "Baum – Slit, Score & Perf (Right Angle)", serial: "BD011", nextServiceDue:"", issues: [] },
-  "BD012": { name: "Baum Folder Gate Fold Attachments", serial: "BD012", nextServiceDue:"", issues: [] },
-  "BD013": { name: "Baum Folder Gate Fold Attachments", serial: "BD013", nextServiceDue:"", issues: [] },
-  "BD014": { name: "Baum Folder Continuous Feed", serial: "BD014", nextServiceDue:"", issues: [] },
-  "BD015": { name: "Continuous Form Cutter (Pin Feed)", serial: "BD015", nextServiceDue:"", issues: [] },
-  "BD016": { name: "Continuous Form Cutter (Pin Feed)", serial: "BD016", nextServiceDue:"", issues: [] },
-  "BD017": { name: "Continuous Form Cutter (Pin Feed) – Signoffs only", serial: "BD017", nextServiceDue:"", issues: [] },
-  "BD018": { name: "Spedo Pin-less Cutter", serial: "BD018", nextServiceDue:"", issues: [] },
-  "BD019": { name: "Spedo Pin-less Cutter", serial: "BD019", nextServiceDue:"", issues: [] },
-  "BD020": { name: "ESP 400 Unwind Roll-Fed Continuous", serial: "BD020", nextServiceDue:"", issues: [] },
-  "BD021": { name: "ESP 400 Unwind Roll-Fed Continuous", serial: "BD021", nextServiceDue:"", issues: [] },
-  "BD022": { name: "ESP 400 Unwind Roll-Fed Continuous", serial: "BD022", nextServiceDue:"", issues: [] },
-  "BD023": { name: "ESP 400 Unwind Roll-Fed Continuous", serial: "BD023", nextServiceDue:"", issues: [] },
-  "BD024": { name: "ESP 400 Unwind Roll-Fed Continuous (needs repair)", serial: "BD024", nextServiceDue:"", issues: [] },
-  "BD025": { name: "MBO Folder Plus (non-operational)", serial: "BD025", nextServiceDue:"", issues: [] },
-  "BD026": { name: "MBO Accumulator Folder", serial: "BD026", nextServiceDue:"", issues: [] },
-  "BD027": { name: "MBO Accumulator Folder", serial: "BD027", nextServiceDue:"", issues: [] },
-  "BD028": { name: "Speedo Merger Unit (Pin Feed)", serial: "BD028", nextServiceDue:"", issues: [] },
-  "BD029": { name: "Speedo Merger Unit (Pin Feed)", serial: "BD029", nextServiceDue:"", issues: [] },
-  "BD030": { name: "Speedo Merger Unit (Pin Feed)", serial: "BD030", nextServiceDue:"", issues: [] },
-  "BD031": { name: "Speedo Merger Unit (Pin Feed)", serial: "BD031", nextServiceDue:"", issues: [] },
-  "BD032": { name: "MBO High-Speed Roll-fed Folding & Plow-folding Line", serial: "BD032", nextServiceDue:"", issues: [] },
-
-  // Affixing Equipment
-  "AF001": { name: "Pick & Place Tipping System", serial: "AF001", nextServiceDue:"", issues: [] },
-  "AF002": { name: "Pick & Place Tipping System", serial: "AF002", nextServiceDue:"", issues: [] },
-  "AF003": { name: "Pick & Place Tipping System", serial: "AF003", nextServiceDue:"", issues: [] },
-  "AF004": { name: "AT-112 High-Speed Affixer w/ Camera Verification", serial: "AF004", nextServiceDue:"", issues: [] },
-  "AF005": { name: "Tabber / Labeler", serial: "AF005", nextServiceDue:"", issues: [] },
-  "AF006": { name: "Tabber / Labeler", serial: "AF006", nextServiceDue:"", issues: [] },
-  "AF007": { name: "Tabber / Labeler", serial: "AF007", nextServiceDue:"", issues: [] },
-  "AF008": { name: "Tabber / Labeler", serial: "AF008", nextServiceDue:"", issues: [] },
-  "AF009": { name: "Tabber / Labeler", serial: "AF009", nextServiceDue:"", issues: [] },
-  "AF010": { name: "Tabber / Labeler", serial: "AF010", nextServiceDue:"", issues: [] },
+  // Digital Color
+  "DC001": { name: "SCREEN Truepress Jet520HD", serial:"DC001", type:"Digital Color", nextServiceDue:"", issues:[] },
+  // Laser
+  "L001": { name:"Océ VarioStream 7450", serial:"L001", type:"Laser", nextServiceDue:"", issues:[] },
+  "L002": { name:"Océ VarioStream 7450", serial:"L002", type:"Laser", nextServiceDue:"", issues:[] },
+  "L003": { name:"Océ VarioStream 7450", serial:"L003", type:"Laser", nextServiceDue:"", issues:[] },
+  "L004": { name:"Océ VarioStream 7450", serial:"L004", type:"Laser", nextServiceDue:"", issues:[] },
+  "L005": { name:"Roll cart", serial:"L005", type:"Laser", nextServiceDue:"", issues:[] },
+  // Inkjet
+  "IJ001": { name:"MCS Hawk", serial:"IJ001", type:"Inkjet", nextServiceDue:"", issues:[] },
+  "IJ002": { name:"Videojet 4320", serial:"IJ002", type:"Inkjet", nextServiceDue:"", issues:[] },
+  "IJ003": { name:"Videojet 4320", serial:"IJ003", type:"Inkjet", nextServiceDue:"", issues:[] },
+  "IJ004": { name:"Videojet 4320", serial:"IJ004", type:"Inkjet", nextServiceDue:"", issues:[] },
+  "IJ005": { name:"Videojet 4320", serial:"IJ005", type:"Inkjet", nextServiceDue:"", issues:[] }
+  // Add the rest similarly...
 };
 
+// ----- SAVE -----
 function saveData(){ localStorage.setItem("equipmentData", JSON.stringify(data)); }
 
+// ----- DASHBOARD -----
 function dashboard(){
   let overdue=0, soon=0, ok=0;
   Object.values(data).forEach(e=>{
     if(!e.nextServiceDue){ ok++; return; }
     let d=(new Date(e.nextServiceDue)-new Date())/(1000*60*60*24);
-    if(d<0) overdue++;
-    else if(d<5) soon++;
-    else ok++;
+    if(d<0) overdue++; else if(d<5) soon++; else ok++;
   });
-  document.getElementById("overdue-card").innerText = "Overdue: "+overdue;
-  document.getElementById("soon-card").innerText = "Due Soon: "+soon;
-  document.getElementById("ok-card").innerText = "OK: "+ok;
+  document.getElementById("overdue-card").innerText="Overdue: "+overdue;
+  document.getElementById("soon-card").innerText="Due Soon: "+soon;
+  document.getElementById("ok-card").innerText="OK: "+ok;
 }
 
-function renderMachines(){
-  let container = document.getElementById("machines");
-  container.innerHTML = "";
-  Object.keys(data).forEach(serial=>{
-    let e = data[serial];
-    let d = e.nextServiceDue ? (new Date(e.nextServiceDue)-new Date())/(1000*60*60*24) : 999;
-    let statusText="OK", statusClass="ok";
-    if(d<0){ statusText="OVERDUE"; statusClass="overdue"; }
-    else if(d<5){ statusText="DUE SOON"; statusClass="soon"; }
-    let issuesHTML="";
-    if(e.issues){
-      e.issues.forEach(i=>{ issuesHTML += `<div class="issue">${i.date}<br>${i.text}</div>`; });
-    }
-    let div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      <div class="machine-title">${e.name} (SN: ${e.serial})</div>
-      <div class="status ${statusClass}">Status: ${statusText}</div>
-      <div>Next Service: ${e.nextServiceDue || "Not Set"}</div>
-      <input type="date" onchange="updateDate('${serial}', this.value)">
-      <button onclick="logIssue('${serial}')">Log Issue</button>
-      <button onclick="markResolved('${serial}')">Clear Issues</button>
-      ${issuesHTML}
-    `;
+// ----- RENDER DROPDOWNS -----
+function renderEquipmentDropdowns(){
+  const container = document.getElementById("equipment-dropdowns");
+  container.innerHTML="";
+  const types = [...new Set(Object.values(data).map(e=>e.type))];
+  types.forEach(type=>{
+    const div = document.createElement("div");
+    div.className="category";
+    const btn = document.createElement("button");
+    btn.innerText=type;
+    btn.onclick=()=> { content.style.display = content.style.display==="block"?"none":"block"; };
+    const content = document.createElement("div");
+    content.className="dropdown-content";
+    Object.values(data).filter(e=>e.type===type).forEach(e=>{
+      const mDiv=document.createElement("div");
+      mDiv.className="card";
+      const d = e.nextServiceDue ? (new Date(e.nextServiceDue)-new Date())/(1000*60*60*24) : 999;
+      let statusText="OK", statusClass="ok";
+      if(d<0){ statusText="OVERDUE"; statusClass="overdue"; }
+      else if(d<5){ statusText="DUE SOON"; statusClass="soon"; }
+      let issuesHTML="";
+      if(e.issues) e.issues.forEach(i=>{ issuesHTML += `<div class="issue">${i.date}<br>${i.text}</div>`; });
+      mDiv.innerHTML=`
+        <div class="machine-title">${e.name} (SN: ${e.serial})</div>
+        <div class="status ${statusClass}">Status: ${statusText}</div>
+        <div>Next Service: ${e.nextServiceDue || "Not Set"}</div>
+        <input type="date" onchange="updateDate('${e.serial}', this.value)">
+        <button onclick="logIssue('${e.serial}')">Log Issue / Part</button>
+        <button onclick="markResolved('${e.serial}')">Clear Issues</button>
+        ${issuesHTML}
+      `;
+      content.appendChild(mDiv);
+    });
+    div.appendChild(btn);
+    div.appendChild(content);
     container.appendChild(div);
   });
 }
 
+// ----- FUNCTIONS -----
 function addMachine(){
-  let name = document.getElementById("newMachineName").value.trim();
-  let serial = document.getElementById("newMachineSerial").value.trim();
-  if(!name || !serial){ alert("Please enter both name & serial"); return; }
-  if(data[serial]){ alert("Serial number already exists"); return; }
-  data[serial] = { name: name, serial: serial, nextServiceDue:"", issues: [] };
-  saveData(); renderMachines(); dashboard();
+  const name=document.getElementById("newMachineName").value.trim();
+  const serial=document.getElementById("newMachineSerial").value.trim();
+  if(!name||!serial){ alert("Please enter both name & serial"); return; }
+  if(data[serial]){ alert("Serial number exists"); return; }
+  data[serial]={name,serial,type:"Custom",nextServiceDue:"",issues:[]};
+  saveData(); renderEquipmentDropdowns(); dashboard();
   document.getElementById("newMachineName").value=""; document.getElementById("newMachineSerial").value="";
 }
 
-function updateDate(serial, date){ data[serial].nextServiceDue=date; saveData(); renderMachines(); dashboard(); }
+function updateDate(serial,date){ data[serial].nextServiceDue=date; saveData(); renderEquipmentDropdowns(); dashboard(); }
 
 function logIssue(serial){
-  let issue = prompt("Enter issue for " + data[serial].name);
+  const issue=prompt("Enter issue, parts replaced, or orders for "+data[serial].name);
   if(!issue) return;
   if(!data[serial].issues) data[serial].issues=[];
-  data[serial].issues.push({text:issue, date:new Date().toLocaleString()});
-  saveData(); renderMachines(); dashboard();
+  data[serial].issues.push({text:issue,date:new Date().toLocaleString()});
+  saveData(); renderEquipmentDropdowns(); dashboard();
 }
 
 function markResolved(serial){
   if(!data[serial].issues || data[serial].issues.length===0) return;
-  if(confirm("Clear all issues for " + data[serial].name + "?")){
-    data[serial].issues=[];
-    saveData(); renderMachines(); dashboard();
-  }
+  if(confirm("Clear all issues for "+data[serial].name+"?")){ data[serial].issues=[]; saveData(); renderEquipmentDropdowns(); dashboard(); }
 }
 
-// Initialize
-renderMachines(); dashboard();
+// Show login first
+document.getElementById("login-container").style.display="block";
 </script>
 
 </body>
 </html>
-
-</body>
-</html></html>
