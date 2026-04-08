@@ -1,357 +1,230 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Equipment Dashboard - Direct Mail Depot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <style>
-body {
-  font-family: 'Segoe UI', Arial;
-  background: #f4f6f9;
-  margin: 0;
-  padding: 0;
-}
+<title>DMD Equipment Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-#login, #app {
-  padding: 20px;
-  max-width: 1200px;
-  margin: auto;
-}
+<style>
+body { font-family:'Segoe UI'; background:#f4f6f9; margin:0; }
+#login,#app { padding:20px; max-width:1200px; margin:auto; display:none;}
+h1 { text-align:center; color:#2c3e50; }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #2c3e50;
-}
+#summary { display:flex; gap:15px; margin-bottom:20px;}
+#summary div { flex:1; padding:20px; border-radius:12px; color:#fff; text-align:center; font-weight:bold;}
+#overdue { background:#e74c3c;}
+#soon { background:#f39c12;}
+#ok { background:#27ae60;}
 
-/* DASHBOARD CARDS */
-#summary {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-}
+.card { background:#fff; padding:15px; margin-bottom:15px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.08);}
+.machine { border-left:5px solid #3498db;}
 
-#summary div {
-  flex: 1;
-  padding: 20px;
-  border-radius: 12px;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
+button { width:100%; padding:10px; margin-top:8px; border:none; border-radius:8px; background:#2c3e50; color:#fff; font-weight:bold;}
+button:hover { background:#34495e;}
 
-#overdue { background: #e74c3c; }
-#soon { background: #f39c12; }
-#ok { background: #27ae60; }
+input { width:100%; padding:8px; margin-top:8px; border-radius:6px; border:1px solid #ccc;}
 
-/* CARD */
-.card {
-  background: #ffffff;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-}
+.status.ok { color:#27ae60;}
+.status.soon { color:#f39c12;}
+.status.overdue { color:#e74c3c;}
 
-/* MACHINE CARD */
-.machine {
-  border-left: 5px solid #3498db;
-}
+.dropdown button { background:#3498db;}
+.content { display:none; max-height:400px; overflow:auto; padding:10px;}
 
-/* STATUS */
-.status {
-  font-weight: bold;
-}
-
-.status.ok { color: #27ae60; }
-.status.soon { color: #f39c12; }
-.status.overdue { color: #e74c3c; }
-
-/* INPUTS */
-input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-/* BUTTONS */
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border: none;
-  border-radius: 8px;
-  background: #2c3e50;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #34495e;
-}
-
-/* DROPDOWN */
-.dropdown {
-  margin-bottom: 10px;
-}
-
-.dropdown button {
-  background: #3498db;
-  font-size: 16px;
-  padding: 12px;
-}
-
-.dropdown button:hover {
-  background: #2980b9;
-}
-
-.content {
-  display: none;
-  padding: 10px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-/* ISSUE LOG */
-.issue {
-  background: #f8f9fa;
-  padding: 8px;
-  margin-top: 6px;
-  border-left: 4px solid #3498db;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* LOGIN */
-#login {
-  max-width: 400px;
-  margin: auto;
-}
-
-#login input {
-  margin-bottom: 10px;
-}
+.issue { background:#f8f9fa; padding:8px; margin-top:6px; border-left:4px solid #3498db;}
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
 <div id="login">
-  <h1>Tech Login</h1>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+<img src="logo.png" style="display:block;margin:auto;width:180px;margin-bottom:20px;">
+<h1>Tech Login</h1>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
 </div>
 
 <!-- APP -->
 <div id="app">
-  <h1>DIRECT MAIL DEPOT – Equipment Dashboard</h1>
+<h1>DMD Equipment Dashboard</h1>
 
-  <div id="summary">
-    <div id="overdue">Overdue: 0</div>
-    <div id="soon">Due Soon: 0</div>
-    <div id="ok">OK: 0</div>
-  </div>
+<div id="summary">
+<div id="overdue">Overdue: 0</div>
+<div id="soon">Due Soon: 0</div>
+<div id="ok">OK: 0</div>
+</div>
 
-  <div class="card">
-    <h3>Add Machine</h3>
-    <input id="newName" placeholder="Machine Name">
-    <input id="newSerial" placeholder="Serial Number">
-    <button onclick="addMachine()">Add Machine</button>
-  </div>
+<div class="card" id="addBox">
+<h3>Add Machine</h3>
+<input id="newName" placeholder="Machine Name">
+<input id="newSerial" placeholder="Serial Number">
+<button onclick="addMachine()">Add Machine</button>
+</div>
 
-  <div id="list"></div>
+<button onclick="printReport()">Print Report</button>
+
+<div id="list"></div>
 </div>
 
 <script>
 
-// LOGIN USERS
-const users = { tech1: "password1" };
+// MODE
+let readOnly = window.location.search.includes("view=true");
 
-// LOAD DATA
+// USERS
+const users = { tech1:"password1" };
+
+// LOAD
 let saved = localStorage.getItem("data");
 let data = saved ? JSON.parse(saved) : null;
 
-// FIRST TIME LOAD (ALL EQUIPMENT)
+// INIT DATA
 if(!data){
-  data = {};
-  let id = 1;
-
-  function add(name,type,count){
-    for(let i=1;i<=count;i++){
-      let sn = type.substring(0,2).toUpperCase() + String(id).padStart(4,"0");
-      data[sn] = { name: name + " " + i, serial: sn, type: type, next: "", issues: [] };
-      id++;
-    }
-  }
-
-  // FULL LIST
-  add("SCREEN Truepress Jet520HD","Digital Color",1);
-
-  add("Océ VarioStream 7450","Laser",4);
-  add("Roll Cart","Laser",1);
-
-  add("MCS Hawk","Inkjet",1);
-  add("Videojet 4320","Inkjet",4);
-
-  add("MSE Roll-fed 9-Station Inserter","Inserting",2);
-  add("MSE Sheet-fed 6-Station Inserter","Inserting",2);
-  add("Flowmaster RS 6-Station","Inserting",3);
-  add("Flowmaster RS Special","Inserting",1);
-  add("BlueCrest Rival","Inserting",1);
-  add("Bowe Fusion 22K","Inserting",1);
-  add("Bell and Howell Inserter","Inserting",2);
-  add("Universal Friction Feeder","Inserting",20);
-  add("Pitney Bowes R750","Inserting",1);
-
-  add("Baum Folder 8-Page","Bindery",6);
-  add("Baum Folder 16-Page","Bindery",3);
-  add("Baum Folder","Bindery",5);
-  add("Baum Slit Score Perf","Bindery",2);
-  add("Baum Gate Fold","Bindery",2);
-  add("Baum Continuous Feed","Bindery",1);
-  add("Form Cutter","Bindery",5);
-  add("Form Cutter Signoff","Bindery",1);
-  add("Spedo Cutter","Bindery",2);
-  add("ESP 400","Bindery",8);
-  add("MBO Folder","Bindery",1);
-  add("MBO Accumulator","Bindery",2);
-  add("Speedo Merger","Bindery",4);
-  add("MBO High-Speed Line","Bindery",1);
-
-  add("Pick & Place","Affixing",3);
-  add("AT-112 Affixer","Affixing",1);
-  add("Tabber Labeler","Affixing",7);
-
-  save();
+data={}; let id=1;
+function add(n,t,c){
+for(let i=1;i<=c;i++){
+let sn=t.substring(0,2).toUpperCase()+String(id).padStart(4,"0");
+data[sn]={name:n+" "+i,serial:sn,type:t,next:"",issues:[]};
+id++;
+}}
+add("SCREEN Truepress Jet520HD","Digital",1);
+add("Océ VarioStream 7450","Laser",4);
+add("Roll Cart","Laser",1);
+add("MCS Hawk","Inkjet",1);
+add("Videojet 4320","Inkjet",4);
+add("MSE Roll-fed Inserter","Inserting",2);
+add("MSE Sheet-fed Inserter","Inserting",2);
+add("Flowmaster RS","Inserting",4);
+add("BlueCrest Rival","Inserting",1);
+add("Bowe Fusion","Inserting",1);
+add("Bell and Howell","Inserting",2);
+add("Universal Feeder","Inserting",20);
+add("Pitney Bowes R750","Inserting",1);
+add("Baum Folder","Bindery",10);
+add("Cutters","Bindery",10);
+add("ESP 400","Bindery",8);
+add("MBO Units","Bindery",4);
+add("Pick & Place","Affixing",3);
+add("AT-112","Affixing",1);
+add("Tabber","Affixing",7);
+save();
 }
 
 // SAVE
-function save(){
-  localStorage.setItem("data", JSON.stringify(data));
-}
+function save(){ localStorage.setItem("data", JSON.stringify(data)); }
 
 // LOGIN
 function login(){
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
+let u=user.value,p=pass.value;
+if(users[u]&&users[u]===p){
+loginDiv(false); render();
+}else alert("Wrong login");
+}
 
-  if(users[u] && users[u] === p){
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    render();
-  } else {
-    alert("Wrong login");
-  }
+// SHOW APP
+function loginDiv(show){
+document.getElementById("login").style.display=show?"block":"none";
+document.getElementById("app").style.display=show?"none":"block";
 }
 
 // RENDER
 function render(){
-  let list = document.getElementById("list");
-  list.innerHTML = "";
+let list=document.getElementById("list");
+list.innerHTML="";
+let types=[...new Set(Object.values(data).map(x=>x.type))];
 
-  let types = [...new Set(Object.values(data).map(x => x.type))];
+let o=0,s=0,k=0;
 
-  let overdue=0, soon=0, ok=0;
+types.forEach(t=>{
+let wrap=document.createElement("div");
+let btn=document.createElement("button");
+btn.innerText=t;
 
-  types.forEach(type=>{
-    let wrap = document.createElement("div");
-    wrap.className="dropdown";
+let content=document.createElement("div");
+content.className="content";
 
-    let btn = document.createElement("button");
-    btn.innerText = type;
+btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
-    let content = document.createElement("div");
-    content.className="content";
+Object.values(data).filter(x=>x.type===t).forEach(e=>{
+let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+let st="OK",cl="ok";
+if(d<0){st="OVERDUE";cl="overdue";o++}
+else if(d<5){st="SOON";cl="soon";s++}
+else{k++}
 
-    btn.onclick = () => {
-      content.style.display = content.style.display === "block" ? "none" : "block";
-    };
+let div=document.createElement("div");
+div.className="card machine";
 
-    Object.values(data).filter(x=>x.type===type).forEach(e=>{
-      let d = e.next ? (new Date(e.next)-new Date())/86400000 : 999;
+let issues=e.issues.map(i=>`<div class="issue">${i}</div>`).join("");
+let note=e.note?`<div class="issue"><b>Note:</b> ${e.note}</div>`:"";
 
-      let st="OK", cl="ok";
-      if(d<0){ st="OVERDUE"; cl="overdue"; overdue++; }
-      else if(d<5){ st="SOON"; cl="soon"; soon++; }
-      else{ ok++; }
+div.innerHTML=`
+<b>${e.name}</b> (${e.serial})<br>
+<span class="status ${cl}">${st}</span><br>
+${note}
+${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
+${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue / Parts</button>`}
+${readOnly?"":`<button onclick="addNote('${e.serial}')">Add Note</button>`}
+${issues}
+`;
 
-      let div = document.createElement("div");
-      div.className="card machine";
+content.appendChild(div);
+});
 
-      let issues = e.issues.map(i=>`<div>${i}</div>`).join("");
+wrap.appendChild(btn);
+wrap.appendChild(content);
+list.appendChild(wrap);
+});
 
-      div.innerHTML = `
-        <b>${e.name}</b> (${e.serial})<br>
-        <span class="status ${cl}">${st}</span><br>
-        <input type="date" onchange="setDate('${e.serial}', this.value)">
-        <button onclick="log('${e.serial}')">Log Issue / Parts</button>
-        ${issues}
-      `;
+overdue.innerText="Overdue: "+o;
+soon.innerText="Due Soon: "+s;
+ok.innerText="OK: "+k;
 
-      content.appendChild(div);
-    });
-
-    wrap.appendChild(btn);
-    wrap.appendChild(content);
-    list.appendChild(wrap);
-  });
-
-  document.getElementById("overdue").innerText = "Overdue: " + overdue;
-  document.getElementById("soon").innerText = "Due Soon: " + soon;
-  document.getElementById("ok").innerText = "OK: " + ok;
+// hide add if QR mode
+if(readOnly) document.getElementById("addBox").style.display="none";
 }
 
-// SET DATE
-function setDate(sn,val){
-  data[sn].next = val;
-  save();
-  render();
-}
+// FUNCTIONS
+function setDate(sn,v){ data[sn].next=v; save(); render(); }
 
-// LOG ISSUE
 function log(sn){
-  let t = prompt("Enter issue / parts replaced / ordered:");
-  if(!t) return;
-
-  data[sn].issues.push(new Date().toLocaleString() + " - " + t);
-  save();
-  render();
+let t=prompt("Issue / Parts:");
+if(!t)return;
+data[sn].issues.push(new Date().toLocaleString()+" - "+t);
+save(); render();
 }
 
-// ADD MACHINE
+function addNote(sn){
+let n=prompt("Tech note:");
+if(!n)return;
+data[sn].note=n;
+save(); render();
+}
+
 function addMachine(){
-  let name = document.getElementById("newName").value;
-  let serial = document.getElementById("newSerial").value;
+if(!newName.value||!newSerial.value)return alert("Fill all");
+data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",next:"",issues:[]};
+save(); render();
+}
 
-  if(!name || !serial){
-    alert("Enter all fields");
-    return;
-  }
-
-  if(data[serial]){
-    alert("Serial exists");
-    return;
-  }
-
-  data[serial] = {
-    name: name,
-    serial: serial,
-    type: "Custom",
-    next: "",
-    issues: []
-  };
-
-  save();
-  render();
+// PRINT
+function printReport(){
+let w=window.open("","");
+let html="<h1>DMD Equipment Report</h1>";
+Object.values(data).forEach(e=>{
+html+=`<h3>${e.name} (${e.serial})</h3>
+<p>Next: ${e.next||"N/A"}</p>
+${(e.issues||[]).join("<br>")}
+<hr>`;
+});
+w.document.write(html);
+w.print();
 }
 
 // START
-document.getElementById("login").style.display = "block";
+if(readOnly){ loginDiv(false); render(); }
+else loginDiv(true);
 
 </script>
 
