@@ -4,7 +4,7 @@
   <title>Equipment Dashboard - Direct Mail Depot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', Arial; background:#eef1f5; margin:0; padding:0;}
+    body { font-family: Arial; background:#eef1f5; margin:0; padding:0; }
     #login, #app { display:none; padding:20px; }
     h1 { text-align:center; }
     .card { background:#fff; padding:10px; margin:8px 0; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
@@ -25,13 +25,15 @@
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login">
-  <h1>Login</h1>
+  <h1>Tech Login</h1>
   <input id="user" placeholder="Username">
   <input id="pass" type="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
 
+<!-- APP -->
 <div id="app">
   <h1>DIRECT MAIL DEPOT – Equipment Dashboard</h1>
 
@@ -45,144 +47,198 @@
     <h3>Add Machine</h3>
     <input id="newName" placeholder="Machine Name">
     <input id="newSerial" placeholder="Serial Number">
-    <button onclick="addMachine()">Add</button>
+    <button onclick="addMachine()">Add Machine</button>
   </div>
 
   <div id="list"></div>
 </div>
 
 <script>
-const users={tech1:"password1"};
 
-let saved=localStorage.getItem("data");
-let data=saved?JSON.parse(saved):{};
+// LOGIN USERS
+const users = { tech1: "password1" };
 
-// ---------- FULL EQUIPMENT LOAD ----------
-if(Object.keys(data).length===0){
+// LOAD DATA
+let saved = localStorage.getItem("data");
+let data = saved ? JSON.parse(saved) : null;
 
-let id=1;
-function add(name,type,count){
-  for(let i=1;i<=count;i++){
-    let sn=type.substring(0,2).toUpperCase()+String(id).padStart(3,"0");
-    data[sn]={name:name+" "+i,serial:sn,type:type,next:"",issues:[]};
-    id++;
+// FIRST TIME LOAD (ALL EQUIPMENT)
+if(!data){
+  data = {};
+  let id = 1;
+
+  function add(name,type,count){
+    for(let i=1;i<=count;i++){
+      let sn = type.substring(0,2).toUpperCase() + String(id).padStart(4,"0");
+      data[sn] = { name: name + " " + i, serial: sn, type: type, next: "", issues: [] };
+      id++;
+    }
+  }
+
+  // FULL LIST
+  add("SCREEN Truepress Jet520HD","Digital Color",1);
+
+  add("Océ VarioStream 7450","Laser",4);
+  add("Roll Cart","Laser",1);
+
+  add("MCS Hawk","Inkjet",1);
+  add("Videojet 4320","Inkjet",4);
+
+  add("MSE Roll-fed 9-Station Inserter","Inserting",2);
+  add("MSE Sheet-fed 6-Station Inserter","Inserting",2);
+  add("Flowmaster RS 6-Station","Inserting",3);
+  add("Flowmaster RS Special","Inserting",1);
+  add("BlueCrest Rival","Inserting",1);
+  add("Bowe Fusion 22K","Inserting",1);
+  add("Bell and Howell Inserter","Inserting",2);
+  add("Universal Friction Feeder","Inserting",20);
+  add("Pitney Bowes R750","Inserting",1);
+
+  add("Baum Folder 8-Page","Bindery",6);
+  add("Baum Folder 16-Page","Bindery",3);
+  add("Baum Folder","Bindery",5);
+  add("Baum Slit Score Perf","Bindery",2);
+  add("Baum Gate Fold","Bindery",2);
+  add("Baum Continuous Feed","Bindery",1);
+  add("Form Cutter","Bindery",5);
+  add("Form Cutter Signoff","Bindery",1);
+  add("Spedo Cutter","Bindery",2);
+  add("ESP 400","Bindery",8);
+  add("MBO Folder","Bindery",1);
+  add("MBO Accumulator","Bindery",2);
+  add("Speedo Merger","Bindery",4);
+  add("MBO High-Speed Line","Bindery",1);
+
+  add("Pick & Place","Affixing",3);
+  add("AT-112 Affixer","Affixing",1);
+  add("Tabber Labeler","Affixing",7);
+
+  save();
+}
+
+// SAVE
+function save(){
+  localStorage.setItem("data", JSON.stringify(data));
+}
+
+// LOGIN
+function login(){
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if(users[u] && users[u] === p){
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    render();
+  } else {
+    alert("Wrong login");
   }
 }
 
-// Digital
-add("SCREEN Truepress Jet520HD","Digital",1);
-
-// Laser
-add("Océ VarioStream 7450","Laser",4);
-add("Roll Cart","Laser",1);
-
-// Inkjet
-add("MCS Hawk","Inkjet",1);
-add("Videojet 4320","Inkjet",4);
-
-// Inserting
-add("MSE Roll-fed 9-Station Inserter","Inserting",2);
-add("MSE Sheet-fed 6-Station Inserter","Inserting",2);
-add("Flowmaster RS 6-Station","Inserting",3);
-add("Flowmaster RS Special","Inserting",1);
-add("BlueCrest Rival","Inserting",1);
-add("Bowe Fusion 22K","Inserting",1);
-add("Bell and Howell Inserter","Inserting",2);
-add("Universal Friction Feeder","Inserting",20);
-add("Pitney Bowes R750","Inserting",1);
-
-// Bindery
-add("Baum Folder 8-Page","Bindery",6);
-add("Baum Folder 16-Page","Bindery",3);
-add("Baum Folder","Bindery",5);
-add("Baum Slit Score Perf","Bindery",2);
-add("Baum Gate Fold","Bindery",2);
-add("Baum Continuous Feed","Bindery",1);
-add("Form Cutter","Bindery",5);
-add("Form Cutter Signoff","Bindery",1);
-add("Spedo Cutter","Bindery",2);
-add("ESP 400","Bindery",8);
-add("MBO Folder","Bindery",1);
-add("MBO Accumulator","Bindery",2);
-add("Speedo Merger","Bindery",4);
-add("MBO High-Speed Line","Bindery",1);
-
-// Affixing
-add("Pick & Place","Affixing",3);
-add("AT-112 Affixer","Affixing",1);
-add("Tabber Labeler","Affixing",7);
-
-save();
-}
-
-// ---------- FUNCTIONS ----------
-function save(){localStorage.setItem("data",JSON.stringify(data));}
-
-function login(){
- if(users[user.value]===pass.value){
-  login.style.display="none"; app.style.display="block"; render();
- }
-}
-
+// RENDER
 function render(){
- let list=document.getElementById("list"); list.innerHTML="";
- let types=[...new Set(Object.values(data).map(x=>x.type))];
+  let list = document.getElementById("list");
+  list.innerHTML = "";
 
- let o=0,s=0,k=0;
+  let types = [...new Set(Object.values(data).map(x => x.type))];
 
- types.forEach(t=>{
-  let wrap=document.createElement("div"); wrap.className="dropdown";
-  let btn=document.createElement("button"); btn.innerText=t;
-  let content=document.createElement("div"); content.className="content";
+  let overdue=0, soon=0, ok=0;
 
-  btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
+  types.forEach(type=>{
+    let wrap = document.createElement("div");
+    wrap.className="dropdown";
 
-  Object.values(data).filter(x=>x.type===t).forEach(e=>{
-    let d=e.next? (new Date(e.next)-new Date())/86400000:999;
-    let st="OK",cl="ok";
-    if(d<0){st="OVERDUE";cl="overdue";o++}
-    else if(d<5){st="SOON";cl="soon";s++}
-    else{k++}
+    let btn = document.createElement("button");
+    btn.innerText = type;
 
-    let div=document.createElement("div"); div.className="card";
-    let issues=e.issues.map(i=>`<div>${i}</div>`).join("");
+    let content = document.createElement("div");
+    content.className="content";
 
-    div.innerHTML=`
-      <b>${e.name}</b> (${e.serial})<br>
-      <span class="status ${cl}">${st}</span><br>
-      <input type="date" onchange="setDate('${e.serial}',this.value)">
-      <button onclick="log('${e.serial}')">Log Issue / Parts</button>
-      ${issues}
-    `;
-    content.appendChild(div);
+    btn.onclick = () => {
+      content.style.display = content.style.display === "block" ? "none" : "block";
+    };
+
+    Object.values(data).filter(x=>x.type===type).forEach(e=>{
+      let d = e.next ? (new Date(e.next)-new Date())/86400000 : 999;
+
+      let st="OK", cl="ok";
+      if(d<0){ st="OVERDUE"; cl="overdue"; overdue++; }
+      else if(d<5){ st="SOON"; cl="soon"; soon++; }
+      else{ ok++; }
+
+      let div = document.createElement("div");
+      div.className="card";
+
+      let issues = e.issues.map(i=>`<div>${i}</div>`).join("");
+
+      div.innerHTML = `
+        <b>${e.name}</b> (${e.serial})<br>
+        <span class="status ${cl}">${st}</span><br>
+        <input type="date" onchange="setDate('${e.serial}', this.value)">
+        <button onclick="log('${e.serial}')">Log Issue / Parts</button>
+        ${issues}
+      `;
+
+      content.appendChild(div);
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+    list.appendChild(wrap);
   });
 
-  wrap.appendChild(btn);
-  wrap.appendChild(content);
-  list.appendChild(wrap);
- });
-
- overdue.innerText="Overdue: "+o;
- soon.innerText="Due Soon: "+s;
- ok.innerText="OK: "+k;
+  document.getElementById("overdue").innerText = "Overdue: " + overdue;
+  document.getElementById("soon").innerText = "Due Soon: " + soon;
+  document.getElementById("ok").innerText = "OK: " + ok;
 }
 
-function setDate(sn,val){ data[sn].next=val; save(); render(); }
+// SET DATE
+function setDate(sn,val){
+  data[sn].next = val;
+  save();
+  render();
+}
 
+// LOG ISSUE
 function log(sn){
- let t=prompt("Enter issue / parts replaced / ordered:");
- if(!t)return;
- data[sn].issues.push(new Date().toLocaleString()+" - "+t);
- save(); render();
+  let t = prompt("Enter issue / parts replaced / ordered:");
+  if(!t) return;
+
+  data[sn].issues.push(new Date().toLocaleString() + " - " + t);
+  save();
+  render();
 }
 
+// ADD MACHINE
 function addMachine(){
- if(!newName.value||!newSerial.value)return alert("Enter all fields");
- data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",next:"",issues:[]};
- save(); render();
+  let name = document.getElementById("newName").value;
+  let serial = document.getElementById("newSerial").value;
+
+  if(!name || !serial){
+    alert("Enter all fields");
+    return;
+  }
+
+  if(data[serial]){
+    alert("Serial exists");
+    return;
+  }
+
+  data[serial] = {
+    name: name,
+    serial: serial,
+    type: "Custom",
+    next: "",
+    issues: []
+  };
+
+  save();
+  render();
 }
 
-login.style.display="block";
+// START
+document.getElementById("login").style.display = "block";
+
 </script>
 
 </body>
