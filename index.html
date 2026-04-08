@@ -18,7 +18,6 @@ body {
   align-items:center;
   justify-content:center;
 }
-
 .login-box {
   background:#fff;
   padding:40px;
@@ -27,44 +26,45 @@ body {
   text-align:center;
   box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
-
 .login-box img { width:240px; margin-bottom:10px; }
-.login-box input {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-.login-box button {
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border:none;
-  border-radius:8px;
-  background:linear-gradient(135deg,#3498db,#2980b9);
-  color:#fff;
-  font-weight:bold;
-}
 
 /* APP */
-#app {
+.container {
   max-width:1200px;
   margin:20px auto;
   background:#fff;
-  border-radius:12px;
+  border-radius:14px;
   padding:20px;
-  display:none;
 }
 
+/* DASHBOARD */
+#summary {
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+#summary div {
+  flex:1;
+  padding:15px;
+  border-radius:10px;
+  color:#fff;
+  text-align:center;
+  font-weight:bold;
+}
+#overdue{background:#e74c3c;}
+#soon{background:#f39c12;}
+#ok{background:#27ae60;}
+
+/* CARDS */
 .card {
   border:1px solid #ddd;
   border-radius:10px;
   padding:10px;
   margin-bottom:10px;
 }
+.machine { border-left:5px solid #3498db; }
 
+/* BUTTONS */
 button {
   width:100%;
   padding:8px;
@@ -74,12 +74,21 @@ button {
   background:#2c3e50;
   color:#fff;
 }
+.dropdown button { background:#3498db; }
 
-input {
+/* INPUT */
+input,select {
   width:100%;
   padding:8px;
   margin-top:5px;
 }
+
+/* STATUS */
+.status.ok { color:green; font-weight:bold;}
+.status.soon { color:orange; font-weight:bold;}
+.status.overdue { color:red; font-weight:bold;}
+
+.content { display:none; padding:10px; }
 </style>
 </head>
 
@@ -90,29 +99,32 @@ input {
   <div class="login-box">
     <img src="logo.png">
     <h2>Direct Mail Depot</h2>
-
     <input id="user" placeholder="Username">
     <input id="pass" type="password" placeholder="Password">
-
     <button onclick="login()">Login</button>
   </div>
 </div>
 
 <!-- APP -->
-<div id="app">
+<div id="app" class="container" style="display:none;">
 
-<h2>Equipment Dashboard</h2>
+<h2>DMD Equipment Dashboard</h2>
 
-<input id="search" placeholder="Search..." onkeyup="render()">
-
-<div class="card">
-  <h3>Add Machine</h3>
-  <input id="name" placeholder="Machine Name">
-  <input id="serial" placeholder="Serial Number">
-  <button onclick="addMachine()">Add</button>
+<div id="summary">
+  <div id="overdue">Overdue: 0</div>
+  <div id="soon">Due Soon: 0</div>
+  <div id="ok">OK: 0</div>
 </div>
 
-<button onclick="exportCSV()">Export Excel</button>
+<div class="card">
+  <h3>Add / Select Machine</h3>
+  <select id="machineSelect"></select>
+  <input id="newName" placeholder="New Machine Name">
+  <input id="newSerial" placeholder="Serial Number">
+  <button onclick="addMachine()">Add Machine</button>
+</div>
+
+<input id="search" placeholder="Search..." onkeyup="render()">
 
 <div id="list"></div>
 
@@ -121,115 +133,144 @@ input {
 <script>
 
 // USERS
-const users = {
-  "Cliff": "DMD2026*"
-};
-
+const users = { Cliff:"DMD2026*" };
 let currentUser = "";
 
 // DATA
 let data = JSON.parse(localStorage.getItem("data") || "{}");
 
-// LOGIN (FIXED + SIMPLE)
-function login(){
-  let u = document.getElementById("user").value.trim();
-  let p = document.getElementById("pass").value.trim();
-
-  if(users[u] && users[u] === p){
-    currentUser = u;
-
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    render(); // <-- THIS is key
-  } else {
-    alert("Wrong username or password");
+// INIT EQUIPMENT (only if empty)
+if(Object.keys(data).length === 0){
+  let id=1;
+  function add(n,t,c){
+    for(let i=1;i<=c;i++){
+      let sn=t.substring(0,2).toUpperCase()+id++;
+      data[sn]={name:n+" "+i,serial:sn,type:t,next:"",issues:[]};
+    }
   }
+  add("Digital Press","Digital",2);
+  add("Laser Printer","Laser",4);
+  add("Inkjet Printer","Inkjet",4);
+  add("Inserter","Inserting",5);
+  add("Binder","Bindery",5);
+  add("Affixer","Affixing",5);
+  save();
+}
+
+// LOGIN
+function login(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  if(users[u]===p){
+    currentUser=u;
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
+    render();
+  } else alert("Wrong login");
 }
 
 // SAVE
 function save(){
-  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("data",JSON.stringify(data));
 }
 
-// ADD MACHINE
-function addMachine(){
-  let name = document.getElementById("name").value;
-  let serial = document.getElementById("serial").value;
-
-  if(!name || !serial){
-    alert("Enter all fields");
-    return;
-  }
-
-  data[serial] = {
-    name: name,
-    serial: serial,
-    issues: []
-  };
-
-  save();
-  render();
-}
-
-// LOG ISSUE
-function log(sn){
-  let t = prompt("Enter issue:");
-  if(!t) return;
-
-  data[sn].issues.push(
-    new Date().toLocaleString() + " - " + t + " (" + currentUser + ")"
-  );
-
-  save();
-  render();
+// DROPDOWN
+function populate(){
+  let s=document.getElementById("machineSelect");
+  s.innerHTML='<option value="">Select Machine</option>';
+  Object.values(data).forEach(e=>{
+    let o=document.createElement("option");
+    o.value=e.name;
+    o.text=e.name;
+    s.appendChild(o);
+  });
 }
 
 // RENDER
 function render(){
-  let search = document.getElementById("search").value.toLowerCase();
-  let list = document.getElementById("list");
-  list.innerHTML = "";
 
-  Object.values(data).forEach(e => {
+  populate();
 
-    if(search && !e.name.toLowerCase().includes(search)) return;
+  let search=document.getElementById("search").value.toLowerCase();
+  let list=document.getElementById("list");
+  list.innerHTML="";
 
-    let div = document.createElement("div");
-    div.className = "card";
+  let overdue=0,soon=0,ok=0;
 
-    div.innerHTML = `
+  let types=[...new Set(Object.values(data).map(x=>x.type))];
+
+  types.forEach(t=>{
+
+    let wrap=document.createElement("div");
+    wrap.className="dropdown";
+
+    let btn=document.createElement("button");
+    btn.innerText=t;
+
+    let content=document.createElement("div");
+    content.className="content";
+
+    btn.onclick=()=>{
+      content.style.display=
+      content.style.display==="block"?"none":"block";
+    };
+
+    Object.values(data).filter(e=>e.type===t).forEach(e=>{
+
+      if(search && !e.name.toLowerCase().includes(search)) return;
+
+      let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+
+      let st="OK",cl="ok";
+      if(d<0){st="OVERDUE";cl="overdue";overdue++}
+      else if(d<5){st="SOON";cl="soon";soon++}
+      else{ok++}
+
+      let div=document.createElement("div");
+      div.className="card machine";
+
+      div.innerHTML=`
       <b>${e.name}</b> (${e.serial})<br>
+      <span class="status ${cl}">${st}</span><br>
+      <input type="date" onchange="setDate('${e.serial}',this.value)">
       <button onclick="log('${e.serial}')">Log Issue</button>
-      ${(e.issues || []).join("<br>")}
-    `;
+      ${(e.issues||[]).join("<br>")}
+      `;
 
-    list.appendChild(div);
-  });
-}
+      content.appendChild(div);
+    });
 
-// EXPORT CSV
-function exportCSV(){
-  let rows = [["Name","Serial","Issues"]];
-
-  Object.values(data).forEach(e=>{
-    rows.push([e.name, e.serial, (e.issues||[]).join(" | ")]);
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+    list.appendChild(wrap);
   });
 
-  let csv = rows.map(r=>r.join(",")).join("\n");
-  let blob = new Blob([csv]);
-
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "report.csv";
-  a.click();
+  document.getElementById("overdue").innerText="Overdue: "+overdue;
+  document.getElementById("soon").innerText="Due Soon: "+soon;
+  document.getElementById("ok").innerText="OK: "+ok;
 }
 
-if(readOnly){
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-  render();
-}  
+// ACTIONS
+function setDate(sn,v){ data[sn].next=v; save(); render(); }
+
+function log(sn){
+  let t=prompt("Issue:");
+  if(!t)return;
+  data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
+  save(); render();
+}
+
+function addMachine(){
+  let name=document.getElementById("newName").value || machineSelect.value;
+  let serial=document.getElementById("newSerial").value;
+
+  if(!name || !serial) return alert("Enter fields");
+
+  data[serial]={name:name,serial:serial,type:"Custom",issues:[]};
+  save(); render();
+}
+
 </script>
 
 </body>
