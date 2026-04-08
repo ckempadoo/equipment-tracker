@@ -28,10 +28,7 @@ body {
   box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
-.login-box img { width:260px; margin-bottom:10px; }
-.login-box h1 { margin:5px 0; }
-.login-box p { color:#777; }
-
+.login-box img { width:240px; margin-bottom:10px; }
 .login-box input {
   width:100%;
   padding:10px;
@@ -52,68 +49,37 @@ body {
 }
 
 /* APP */
-.container {
+#app {
   max-width:1200px;
   margin:20px auto;
   background:#fff;
-  border-radius:14px;
+  border-radius:12px;
   padding:20px;
+  display:none;
 }
 
-#summary { display:flex; gap:10px; margin-bottom:15px;}
-#summary div {
-  flex:1;
-  padding:15px;
+.card {
+  border:1px solid #ddd;
   border-radius:10px;
-  color:#fff;
-  text-align:center;
-  font-weight:bold;
-}
-#overdue{background:#e74c3c;}
-#soon{background:#f39c12;}
-#ok{background:#27ae60;}
-
-input,select {
-  width:100%;
-  padding:8px;
-  margin-top:6px;
-  border-radius:6px;
-  border:1px solid #ccc;
+  padding:10px;
+  margin-bottom:10px;
 }
 
 button {
   width:100%;
-  padding:9px;
-  margin-top:6px;
+  padding:8px;
+  margin-top:5px;
   border:none;
-  border-radius:8px;
+  border-radius:6px;
   background:#2c3e50;
   color:#fff;
-  font-weight:bold;
 }
 
-.dropdown button { background:#3498db; }
-.content { display:none; padding:10px; max-height:350px; overflow:auto; }
-
-.card {
-  background:#fff;
-  border:1px solid #eee;
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:8px;
+input {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
 }
-
-.machine { border-left:5px solid #3498db; }
-
-.issue {
-  background:#f8f9fa;
-  padding:5px;
-  margin-top:4px;
-  border-left:3px solid #3498db;
-  font-size:13px;
-}
-
-img.thumb { width:70px; margin:4px; border-radius:5px; }
 </style>
 </head>
 
@@ -121,45 +87,32 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
 
 <!-- LOGIN -->
 <div id="login">
-<div class="login-box">
-<div style="font-size:30px;">🔒</div>
-<img src="logo.png">
-<h1>Welcome</h1>
-<p>Direct Mail Depot Systems</p>
+  <div class="login-box">
+    <img src="logo.png">
+    <h2>Direct Mail Depot</h2>
 
-<input id="user" placeholder="Username">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="login()">Sign In</button>
-</div>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+  </div>
 </div>
 
 <!-- APP -->
-<div id="app" class="container" style="display:none;">
+<div id="app">
 
-<h2>DMD Equipment Dashboard</h2>
+<h2>Equipment Dashboard</h2>
 
-<input id="search" placeholder="Search machines..." onkeyup="render()">
+<input id="search" placeholder="Search..." onkeyup="render()">
 
-<div id="summary">
-<div id="overdue">0</div>
-<div id="soon">0</div>
-<div id="ok">0</div>
+<div class="card">
+  <h3>Add Machine</h3>
+  <input id="name" placeholder="Machine Name">
+  <input id="serial" placeholder="Serial Number">
+  <button onclick="addMachine()">Add</button>
 </div>
 
-<div class="card" id="addBox">
-<h3>Add / Select Machine</h3>
-<select id="machineSelect"></select>
-<input id="newName" placeholder="New Machine Name">
-<input id="newSerial" placeholder="Serial Number">
-<button onclick="addMachine()">Add Machine</button>
-</div>
-
-<input type="date" id="fromDate">
-<input type="date" id="toDate">
-
-<button onclick="printReport()">Print Report</button>
 <button onclick="exportCSV()">Export Excel</button>
-<button onclick="sendText()">Text Maintenance</button>
 
 <div id="list"></div>
 
@@ -167,25 +120,22 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
 
 <script>
 
-let currentUser = "";
-let readOnly = location.search.includes("view=true");
-
 // USERS
 const users = {
-  Cliff:"DMD2026*",
-  Tech2:"1234",
-  Tech3:"1234"
+  "Cliff": "DMD2026*"
 };
 
+let currentUser = "";
+
 // DATA
-let data = JSON.parse(localStorage.getItem("data")||"{}");
+let data = JSON.parse(localStorage.getItem("data") || "{}");
 
-// LOGIN
+// LOGIN (FIXED + SIMPLE)
 function login(){
-  let u = document.getElementById("user").value.trim();
-  let p = document.getElementById("pass").value.trim();
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
 
-  if(users[u] && users[u] === p){
+  if(users[u] === p){
     currentUser = u;
 
     document.getElementById("login").style.display = "none";
@@ -193,172 +143,86 @@ function login(){
 
     render();
   } else {
-    alert("Wrong username or password");
+    alert("Invalid login");
   }
 }
 
 // SAVE
-function save(){localStorage.setItem("data",JSON.stringify(data));}
+function save(){
+  localStorage.setItem("data", JSON.stringify(data));
+}
 
-// DROPDOWN
-function populate(){
-  let s=machineSelect;
-  s.innerHTML='<option value="">Select Machine</option>';
-  Object.values(data).forEach(e=>{
-    let o=document.createElement("option");
-    o.value=e.name;
-    o.text=e.name;
-    s.appendChild(o);
-  });
+// ADD MACHINE
+function addMachine(){
+  let name = document.getElementById("name").value;
+  let serial = document.getElementById("serial").value;
+
+  if(!name || !serial){
+    alert("Enter all fields");
+    return;
+  }
+
+  data[serial] = {
+    name: name,
+    serial: serial,
+    issues: []
+  };
+
+  save();
+  render();
+}
+
+// LOG ISSUE
+function log(sn){
+  let t = prompt("Enter issue:");
+  if(!t) return;
+
+  data[sn].issues.push(
+    new Date().toLocaleString() + " - " + t + " (" + currentUser + ")"
+  );
+
+  save();
+  render();
 }
 
 // RENDER
 function render(){
-  populate();
-  let search=searchInput();
-  list.innerHTML="";
+  let search = document.getElementById("search").value.toLowerCase();
+  let list = document.getElementById("list");
+  list.innerHTML = "";
 
-  let o=0,s=0,k=0;
+  Object.values(data).forEach(e => {
 
-  let types=[...new Set(Object.values(data).map(x=>x.type||"Custom"))];
+    if(search && !e.name.toLowerCase().includes(search)) return;
 
-  types.forEach(t=>{
-    let wrap=document.createElement("div");
-    let btn=document.createElement("button");
-    btn.innerText=t;
+    let div = document.createElement("div");
+    div.className = "card";
 
-    let content=document.createElement("div");
-    content.className="content";
-
-    btn.onclick=()=>content.style.display=
-      content.style.display==="block"?"none":"block";
-
-    Object.values(data).filter(e=>(e.type||"Custom")==t).forEach(e=>{
-      if(search && !e.name.toLowerCase().includes(search)) return;
-
-      let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-      let st="OK";
-      if(d<0){st="OVERDUE";o++}
-      else if(d<5){st="SOON";s++}
-      else{k++}
-
-      let div=document.createElement("div");
-      div.className="card machine";
-
-      let imgs=(e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
-
-      div.innerHTML=`
+    div.innerHTML = `
       <b>${e.name}</b> (${e.serial})<br>
-      ${st}<br>
-      ${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
-      ${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue</button>`}
-      ${readOnly?"":`<button onclick="addNote('${e.serial}')">Add Note</button>`}
-      ${readOnly?"":`<input type="file" onchange="addImage('${e.serial}',this)">`}
-      ${(e.issues||[]).map(i=>`<div class="issue">${i}</div>`).join("")}
-      ${imgs}
-      `;
+      <button onclick="log('${e.serial}')">Log Issue</button>
+      ${(e.issues || []).join("<br>")}
+    `;
 
-      content.appendChild(div);
-    });
-
-    wrap.appendChild(btn);
-    wrap.appendChild(content);
-    list.appendChild(wrap);
+    list.appendChild(div);
   });
-
-  overdue.innerText=o;
-  soon.innerText=s;
-  ok.innerText=k;
-
-  if(readOnly) addBox.style.display="none";
 }
 
-function searchInput(){
-  return document.getElementById("search").value.toLowerCase();
-}
-
-// ACTIONS
-function setDate(sn,v){data[sn].next=v;save();render();}
-
-function log(sn){
-  let t=prompt("Issue / Parts:");
-  if(!t)return;
-  data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
-  save();render();
-}
-
-function addNote(sn){
-  let t=prompt("Note:");
-  if(!t)return;
-  data[sn].issues.push(new Date().toLocaleString()+" - NOTE: "+t+" ("+currentUser+")");
-  save();render();
-}
-
-function addImage(sn,input){
-  let file=input.files[0];
-  let reader=new FileReader();
-  reader.onload=e=>{
-    data[sn].images=data[sn].images||[];
-    data[sn].images.push(e.target.result);
-    save();render();
-  };
-  reader.readAsDataURL(file);
-}
-
-function addMachine(){
-  let name=newName.value||machineSelect.value;
-  let serial=newSerial.value;
-  if(!name||!serial)return alert("Fill fields");
-
-  data[serial]={name:name,serial:serial,type:"Custom",issues:[],images:[]};
-  save();render();
-}
-
-// REPORT
-function printReport(){
-  let from=new Date(fromDate.value||"2000");
-  let to=new Date(toDate.value||"2100");
-
-  let w=window.open("");
-  let html="<h1>DMD Report</h1>";
-
-  Object.values(data).forEach(e=>{
-    html+=`<h3>${e.name} (${e.serial})</h3>`;
-    (e.issues||[]).forEach(i=>{
-      let d=new Date(i.split(" - ")[0]);
-      if(d>=from && d<=to) html+=`<div>${i}</div>`;
-    });
-    html+="<hr>";
-  });
-
-  w.document.write(html);
-  w.print();
-}
-
-// EXPORT
+// EXPORT CSV
 function exportCSV(){
-  let rows=[["Name","Serial","Issues"]];
+  let rows = [["Name","Serial","Issues"]];
+
   Object.values(data).forEach(e=>{
-    rows.push([e.name,e.serial,(e.issues||[]).join(" | ")]);
+    rows.push([e.name, e.serial, (e.issues||[]).join(" | ")]);
   });
 
-  let csv=rows.map(r=>r.join(",")).join("\n");
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([csv]));
-  a.download="report.csv";
+  let csv = rows.map(r=>r.join(",")).join("\n");
+  let blob = new Blob([csv]);
+
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "report.csv";
   a.click();
-}
-
-// SMS
-function sendText(){
-  location.href="sms:17325551234?body=Machine needs attention";
-}
-
-// START
-if(readOnly){
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-  render();
 }
 
 </script>
