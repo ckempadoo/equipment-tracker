@@ -5,48 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { font-family:'Segoe UI'; background:#f4f6f9; margin:0; }
-#login,#app { padding:20px; max-width:1200px; margin:auto; display:none;}
+body {
+  font-family: 'Segoe UI';
+  background: #e9edf2;
+  margin: 0;
+}
+
+/* MAIN CONTAINER */
+.container {
+  max-width: 1200px;
+  margin: 30px auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  padding: 25px;
+}
+
 h1 { text-align:center; color:#2c3e50; }
 
+/* LOGIN */
+#login { text-align:center; margin-top:60px; }
+#login img { width:300px; margin-bottom:25px; }
+
+/* SUMMARY */
 #summary { display:flex; gap:15px; margin-bottom:20px;}
-#summary div { flex:1; padding:20px; border-radius:12px; color:#fff; text-align:center; font-weight:bold;}
+#summary div {
+  flex:1;
+  padding:20px;
+  border-radius:12px;
+  color:#fff;
+  font-weight:bold;
+  text-align:center;
+}
 #overdue { background:#e74c3c;}
 #soon { background:#f39c12;}
 #ok { background:#27ae60;}
 
-.card { background:#fff; padding:15px; margin-bottom:15px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.08);}
-.machine { border-left:5px solid #3498db;}
+/* CARD */
+.card {
+  background:#fff;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:10px;
+  border:1px solid #eee;
+}
 
-button { width:100%; padding:10px; margin-top:8px; border:none; border-radius:8px; background:#2c3e50; color:#fff; font-weight:bold;}
-button:hover { background:#34495e;}
+.machine { border-left:5px solid #3498db; }
 
-input { width:100%; padding:8px; margin-top:8px; border-radius:6px; border:1px solid #ccc;}
+/* BUTTONS */
+button {
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:8px;
+  background:#2c3e50;
+  color:#fff;
+  font-weight:bold;
+}
+button:hover { background:#34495e; }
 
+/* INPUT */
+input, select {
+  width:100%;
+  padding:8px;
+  margin-top:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+/* STATUS */
 .status.ok { color:#27ae60;}
 .status.soon { color:#f39c12;}
 .status.overdue { color:#e74c3c;}
 
-.dropdown button { background:#3498db;}
-.content { display:none; max-height:400px; overflow:auto; padding:10px;}
+/* DROPDOWN */
+.dropdown button { background:#3498db; }
+.content { display:none; max-height:350px; overflow:auto; padding:10px; }
 
-.issue { background:#f8f9fa; padding:8px; margin-top:6px; border-left:4px solid #3498db;}
+/* ISSUE */
+.issue {
+  background:#f8f9fa;
+  padding:6px;
+  margin-top:5px;
+  border-left:4px solid #3498db;
+}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="login">
-<img src="logo.png" style="display:block;margin:auto;width:180px;margin-bottom:20px;">
-<h1>Tech Login</h1>
+<div id="login" class="container">
+<img src="logo.png">
+<h1>Equipment System Login</h1>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
-<!-- APP -->
-<div id="app">
+<div id="app" class="container" style="display:none;">
+
 <h1>DMD Equipment Dashboard</h1>
 
 <div id="summary">
@@ -56,15 +115,21 @@ input { width:100%; padding:8px; margin-top:8px; border-radius:6px; border:1px s
 </div>
 
 <div class="card" id="addBox">
-<h3>Add Machine</h3>
-<input id="newName" placeholder="Machine Name">
+<h3>Add / Select Machine</h3>
+
+<select id="machineSelect"></select>
+
+<input id="newName" placeholder="New Machine Name">
 <input id="newSerial" placeholder="Serial Number">
-<button onclick="addMachine()">Add Machine</button>
+
+<button onclick="addMachine()">Add / Use Machine</button>
 </div>
 
 <button onclick="printReport()">Print Report</button>
+<button onclick="sendText()">Text Maintenance</button>
 
 <div id="list"></div>
+
 </div>
 
 <script>
@@ -72,14 +137,14 @@ input { width:100%; padding:8px; margin-top:8px; border-radius:6px; border:1px s
 // MODE
 let readOnly = window.location.search.includes("view=true");
 
-// USERS
+// LOGIN
 const users = { tech1:"password1" };
 
-// LOAD
+// DATA
 let saved = localStorage.getItem("data");
 let data = saved ? JSON.parse(saved) : null;
 
-// INIT DATA
+// INIT
 if(!data){
 data={}; let id=1;
 function add(n,t,c){
@@ -89,25 +154,12 @@ data[sn]={name:n+" "+i,serial:sn,type:t,next:"",issues:[]};
 id++;
 }}
 add("SCREEN Truepress Jet520HD","Digital",1);
-add("Océ VarioStream 7450","Laser",4);
-add("Roll Cart","Laser",1);
+add("Océ VarioStream","Laser",4);
 add("MCS Hawk","Inkjet",1);
-add("Videojet 4320","Inkjet",4);
-add("MSE Roll-fed Inserter","Inserting",2);
-add("MSE Sheet-fed Inserter","Inserting",2);
-add("Flowmaster RS","Inserting",4);
-add("BlueCrest Rival","Inserting",1);
-add("Bowe Fusion","Inserting",1);
-add("Bell and Howell","Inserting",2);
-add("Universal Feeder","Inserting",20);
-add("Pitney Bowes R750","Inserting",1);
-add("Baum Folder","Bindery",10);
-add("Cutters","Bindery",10);
-add("ESP 400","Bindery",8);
-add("MBO Units","Bindery",4);
-add("Pick & Place","Affixing",3);
-add("AT-112","Affixing",1);
-add("Tabber","Affixing",7);
+add("Videojet","Inkjet",4);
+add("Inserter","Inserting",10);
+add("Binder","Bindery",10);
+add("Affixer","Affixing",10);
 save();
 }
 
@@ -116,24 +168,32 @@ function save(){ localStorage.setItem("data", JSON.stringify(data)); }
 
 // LOGIN
 function login(){
-let u=user.value,p=pass.value;
-if(users[u]&&users[u]===p){
-loginDiv(false); render();
+if(users[user.value]===pass.value){
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+render();
 }else alert("Wrong login");
 }
 
-// SHOW APP
-function loginDiv(show){
-document.getElementById("login").style.display=show?"block":"none";
-document.getElementById("app").style.display=show?"none":"block";
+// DROPDOWN LIST
+function populateMachineDropdown(){
+let s=document.getElementById("machineSelect");
+s.innerHTML='<option value="">Select Existing Machine</option>';
+Object.values(data).forEach(e=>{
+let o=document.createElement("option");
+o.value=e.serial;
+o.text=e.name+" ("+e.serial+")";
+s.appendChild(o);
+});
 }
 
 // RENDER
 function render(){
 let list=document.getElementById("list");
 list.innerHTML="";
-let types=[...new Set(Object.values(data).map(x=>x.type))];
+populateMachineDropdown();
 
+let types=[...new Set(Object.values(data).map(x=>x.type))];
 let o=0,s=0,k=0;
 
 types.forEach(t=>{
@@ -161,10 +221,10 @@ let note=e.note?`<div class="issue"><b>Note:</b> ${e.note}</div>`:"";
 
 div.innerHTML=`
 <b>${e.name}</b> (${e.serial})<br>
-<span class="status ${cl}">${st}</span><br>
+<span class="status ${cl}">${st}</span>
 ${note}
 ${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
-${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue / Parts</button>`}
+${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue</button>`}
 ${readOnly?"":`<button onclick="addNote('${e.serial}')">Add Note</button>`}
 ${issues}
 `;
@@ -181,7 +241,6 @@ overdue.innerText="Overdue: "+o;
 soon.innerText="Due Soon: "+s;
 ok.innerText="OK: "+k;
 
-// hide add if QR mode
 if(readOnly) document.getElementById("addBox").style.display="none";
 }
 
@@ -203,28 +262,39 @@ save(); render();
 }
 
 function addMachine(){
-if(!newName.value||!newSerial.value)return alert("Fill all");
+let sel=machineSelect.value;
+if(sel){ alert("Selected: "+data[sel].name); return; }
+
+if(!newName.value||!newSerial.value) return alert("Fill fields");
+
 data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",next:"",issues:[]};
 save(); render();
 }
 
+// SMS
+function sendText(){
+window.location.href="sms:17325551234?body=Machine needs attention";
+}
+
 // PRINT
 function printReport(){
-let w=window.open("","");
-let html="<h1>DMD Equipment Report</h1>";
+let w=window.open("");
+let html="<h1>DMD Report</h1>";
 Object.values(data).forEach(e=>{
-html+=`<h3>${e.name} (${e.serial})</h3>
-<p>Next: ${e.next||"N/A"}</p>
-${(e.issues||[]).join("<br>")}
-<hr>`;
+html+=`<h3>${e.name}</h3><p>${e.serial}</p><hr>`;
 });
 w.document.write(html);
 w.print();
 }
 
 // START
-if(readOnly){ loginDiv(false); render(); }
-else loginDiv(true);
+if(readOnly){
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+render();
+}else{
+document.getElementById("login").style.display="block";
+}
 
 </script>
 
