@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>DMD Equipment Dashboard</title>
+<title>DMD Equipment System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   margin:0;
   font-family:'Segoe UI';
-  background: linear-gradient(135deg,#2c3e50,#4ca1af);
+  background:linear-gradient(135deg,#2c3e50,#4ca1af);
 }
 
 /* LOGIN */
@@ -28,9 +28,9 @@ body {
   box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
-.login-box img { width:240px; margin-bottom:15px; }
-.login-box h1 { margin-bottom:5px; }
-.login-box p { color:#777; margin-bottom:20px; }
+.login-box img { width:260px; margin-bottom:10px; }
+.login-box h1 { margin:5px 0; }
+.login-box p { color:#777; }
 
 .login-box input {
   width:100%;
@@ -54,17 +54,17 @@ body {
 /* APP */
 .container {
   max-width:1200px;
-  margin:30px auto;
+  margin:20px auto;
   background:#fff;
   border-radius:14px;
-  padding:25px;
+  padding:20px;
 }
 
-#summary { display:flex; gap:15px; margin-bottom:20px;}
+#summary { display:flex; gap:10px; margin-bottom:15px;}
 #summary div {
   flex:1;
-  padding:20px;
-  border-radius:12px;
+  padding:15px;
+  border-radius:10px;
   color:#fff;
   text-align:center;
   font-weight:bold;
@@ -72,27 +72,6 @@ body {
 #overdue{background:#e74c3c;}
 #soon{background:#f39c12;}
 #ok{background:#27ae60;}
-
-.card {
-  background:#fff;
-  padding:15px;
-  margin-bottom:10px;
-  border-radius:10px;
-  border:1px solid #eee;
-}
-
-.machine { border-left:5px solid #3498db; }
-
-button {
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border:none;
-  border-radius:8px;
-  background:#2c3e50;
-  color:#fff;
-  font-weight:bold;
-}
 
 input,select {
   width:100%;
@@ -102,17 +81,39 @@ input,select {
   border:1px solid #ccc;
 }
 
+button {
+  width:100%;
+  padding:9px;
+  margin-top:6px;
+  border:none;
+  border-radius:8px;
+  background:#2c3e50;
+  color:#fff;
+  font-weight:bold;
+}
+
 .dropdown button { background:#3498db; }
-.content { display:none; max-height:350px; overflow:auto; }
+.content { display:none; padding:10px; max-height:350px; overflow:auto; }
+
+.card {
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+}
+
+.machine { border-left:5px solid #3498db; }
 
 .issue {
   background:#f8f9fa;
-  padding:6px;
-  margin-top:5px;
-  border-left:4px solid #3498db;
+  padding:5px;
+  margin-top:4px;
+  border-left:3px solid #3498db;
+  font-size:13px;
 }
 
-.search { margin-bottom:15px; }
+img.thumb { width:70px; margin:4px; border-radius:5px; }
 </style>
 </head>
 
@@ -128,7 +129,6 @@ input,select {
 
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-
 <button onclick="login()">Sign In</button>
 </div>
 </div>
@@ -136,9 +136,9 @@ input,select {
 <!-- APP -->
 <div id="app" class="container" style="display:none;">
 
-<h1>DMD Equipment Dashboard</h1>
+<h2>DMD Equipment Dashboard</h2>
 
-<input class="search" id="search" placeholder="Search machines..." onkeyup="render()">
+<input id="search" placeholder="Search machines..." onkeyup="render()">
 
 <div id="summary">
 <div id="overdue">0</div>
@@ -151,10 +151,14 @@ input,select {
 <select id="machineSelect"></select>
 <input id="newName" placeholder="New Machine Name">
 <input id="newSerial" placeholder="Serial Number">
-<button onclick="addMachine()">Add / Use Machine</button>
+<button onclick="addMachine()">Add Machine</button>
 </div>
 
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+
 <button onclick="printReport()">Print Report</button>
+<button onclick="exportCSV()">Export Excel</button>
 <button onclick="sendText()">Text Maintenance</button>
 
 <div id="list"></div>
@@ -163,122 +167,195 @@ input,select {
 
 <script>
 
-let readOnly = window.location.search.includes("view=true");
-const users = { Cliff:"DMD2026*" };
+let currentUser = "";
+let readOnly = location.search.includes("view=true");
 
-let saved = localStorage.getItem("data");
-let data = saved ? JSON.parse(saved) : null;
+// USERS
+const users = {
+  Cliff:"DMD2026*",
+  Tech2:"1234",
+  Tech3:"1234"
+};
 
-if(!data){
-data={}; let id=1;
-function add(n,t,c){
-for(let i=1;i<=c;i++){
-let sn=t.substring(0,2).toUpperCase()+id++;
-data[sn]={name:n+" "+i,serial:sn,type:t,next:"",issues:[]};
-}}
-add("Printer","Digital",5);
-add("Inserter","Inserting",10);
-add("Binder","Bindery",10);
-save();
+// DATA
+let data = JSON.parse(localStorage.getItem("data")||"{}");
+
+// LOGIN
+function login(){
+  let u=user.value.trim();
+  let p=pass.value.trim();
+
+  if(users[u] && users[u]===p){
+    currentUser=u;
+    login.style.display="none";
+    app.style.display="block";
+    render();
+  } else alert("Wrong login");
 }
 
+// SAVE
 function save(){localStorage.setItem("data",JSON.stringify(data));}
 
-function login(){
-  let u = document.getElementById("user").value.trim();
-  let p = document.getElementById("pass").value.trim();
-
-  if(users[u] && users[u] === p){
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    render();
-  } else {
-    alert("Invalid username or password");
-  }
-}
-
+// DROPDOWN
 function populate(){
-let s=machineSelect;
-s.innerHTML='<option value="">Select Machine</option>';
-Object.values(data).forEach(e=>{
-let o=document.createElement("option");
-o.value=e.serial;
-o.text=e.name;
-s.appendChild(o);
-});
+  let s=machineSelect;
+  s.innerHTML='<option value="">Select Machine</option>';
+  Object.values(data).forEach(e=>{
+    let o=document.createElement("option");
+    o.value=e.name;
+    o.text=e.name;
+    s.appendChild(o);
+  });
 }
 
+// RENDER
 function render(){
-populate();
+  populate();
+  let search=searchInput();
+  list.innerHTML="";
 
-let search=document.getElementById("search").value.toLowerCase();
-let list=document.getElementById("list");
-list.innerHTML="";
+  let o=0,s=0,k=0;
 
-let o=0,s=0,k=0;
+  let types=[...new Set(Object.values(data).map(x=>x.type||"Custom"))];
 
-Object.values(data).forEach(e=>{
-if(search && !e.name.toLowerCase().includes(search)) return;
+  types.forEach(t=>{
+    let wrap=document.createElement("div");
+    let btn=document.createElement("button");
+    btn.innerText=t;
 
-let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let st="OK";
-if(d<0){st="OVERDUE";o++}
-else if(d<5){st="SOON";s++}
-else{k++}
+    let content=document.createElement("div");
+    content.className="content";
 
-let div=document.createElement("div");
-div.className="card machine";
+    btn.onclick=()=>content.style.display=
+      content.style.display==="block"?"none":"block";
 
-div.innerHTML=`
-<b>${e.name}</b> (${e.serial})<br>
-${st}<br>
-${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
-${readOnly?"":`<button onclick="log('${e.serial}')">Log</button>`}
-${(e.issues||[]).join("<br>")}
-`;
+    Object.values(data).filter(e=>(e.type||"Custom")==t).forEach(e=>{
+      if(search && !e.name.toLowerCase().includes(search)) return;
 
-list.appendChild(div);
-});
+      let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+      let st="OK";
+      if(d<0){st="OVERDUE";o++}
+      else if(d<5){st="SOON";s++}
+      else{k++}
 
-overdue.innerText=o;
-soon.innerText=s;
-ok.innerText=k;
+      let div=document.createElement("div");
+      div.className="card machine";
 
-if(readOnly) addBox.style.display="none";
+      let imgs=(e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
+
+      div.innerHTML=`
+      <b>${e.name}</b> (${e.serial})<br>
+      ${st}<br>
+      ${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
+      ${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue</button>`}
+      ${readOnly?"":`<button onclick="addNote('${e.serial}')">Add Note</button>`}
+      ${readOnly?"":`<input type="file" onchange="addImage('${e.serial}',this)">`}
+      ${(e.issues||[]).map(i=>`<div class="issue">${i}</div>`).join("")}
+      ${imgs}
+      `;
+
+      content.appendChild(div);
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+    list.appendChild(wrap);
+  });
+
+  overdue.innerText=o;
+  soon.innerText=s;
+  ok.innerText=k;
+
+  if(readOnly) addBox.style.display="none";
 }
 
+function searchInput(){
+  return document.getElementById("search").value.toLowerCase();
+}
+
+// ACTIONS
 function setDate(sn,v){data[sn].next=v;save();render();}
 
 function log(sn){
-let t=prompt("Issue:");
-if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - "+t+" (Cliff)");
-save();render();
+  let t=prompt("Issue / Parts:");
+  if(!t)return;
+  data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
+  save();render();
+}
+
+function addNote(sn){
+  let t=prompt("Note:");
+  if(!t)return;
+  data[sn].issues.push(new Date().toLocaleString()+" - NOTE: "+t+" ("+currentUser+")");
+  save();render();
+}
+
+function addImage(sn,input){
+  let file=input.files[0];
+  let reader=new FileReader();
+  reader.onload=e=>{
+    data[sn].images=data[sn].images||[];
+    data[sn].images.push(e.target.result);
+    save();render();
+  };
+  reader.readAsDataURL(file);
 }
 
 function addMachine(){
-if(machineSelect.value)return alert("Selected existing");
+  let name=newName.value||machineSelect.value;
+  let serial=newSerial.value;
+  if(!name||!serial)return alert("Fill fields");
 
-data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",issues:[]};
-save();render();
+  data[serial]={name:name,serial:serial,type:"Custom",issues:[],images:[]};
+  save();render();
 }
 
-function sendText(){
-window.location.href="sms:17325551234?body=Machine needs attention";
-}
-
+// REPORT
 function printReport(){
-let w=window.open("");
-let html="<h1>Report</h1>";
-Object.values(data).forEach(e=>{
-html+=`<h3>${e.name}</h3><hr>`;
-});
-w.document.write(html);
-w.print();
+  let from=new Date(fromDate.value||"2000");
+  let to=new Date(toDate.value||"2100");
+
+  let w=window.open("");
+  let html="<h1>DMD Report</h1>";
+
+  Object.values(data).forEach(e=>{
+    html+=`<h3>${e.name} (${e.serial})</h3>`;
+    (e.issues||[]).forEach(i=>{
+      let d=new Date(i.split(" - ")[0]);
+      if(d>=from && d<=to) html+=`<div>${i}</div>`;
+    });
+    html+="<hr>";
+  });
+
+  w.document.write(html);
+  w.print();
 }
 
-if(readOnly){login.style.display="none";app.style.display="block";render();}
-else login.style.display="flex";
+// EXPORT
+function exportCSV(){
+  let rows=[["Name","Serial","Issues"]];
+  Object.values(data).forEach(e=>{
+    rows.push([e.name,e.serial,(e.issues||[]).join(" | ")]);
+  });
+
+  let csv=rows.map(r=>r.join(",")).join("\n");
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv]));
+  a.download="report.csv";
+  a.click();
+}
+
+// SMS
+function sendText(){
+  location.href="sms:17325551234?body=Machine needs attention";
+}
+
+// START
+if(readOnly){
+  login.style.display="none";
+  app.style.display="block";
+  render();
+}
 
 </script>
 
