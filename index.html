@@ -3,25 +3,139 @@
 <head>
   <title>Equipment Dashboard - Direct Mail Depot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial; background:#eef1f5; margin:0; padding:0; }
-    #login, #app { display:none; padding:20px; }
-    h1 { text-align:center; }
-    .card { background:#fff; padding:10px; margin:8px 0; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-    button { width:100%; padding:8px; margin-top:5px; background:#2c3e50; color:#fff; border:none; border-radius:5px;}
-    input { width:100%; padding:6px; margin-top:5px;}
-    .status.ok { color:green; }
-    .status.soon { color:orange; }
-    .status.overdue { color:red; }
-    .dropdown { margin-bottom:10px; }
-    .dropdown button { background:#3498db; }
-    .content { display:none; max-height:300px; overflow:auto; }
-    #summary { display:flex; gap:5px; margin-bottom:10px;}
-    #summary div { flex:1; color:#fff; padding:10px; border-radius:10px; text-align:center;}
-    #overdue { background:#e74c3c;}
-    #soon { background:#f39c12;}
-    #ok { background:#27ae60;}
-  </style>
+ <style>
+body {
+  font-family: 'Segoe UI', Arial;
+  background: #f4f6f9;
+  margin: 0;
+  padding: 0;
+}
+
+#login, #app {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* DASHBOARD CARDS */
+#summary {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+#summary div {
+  flex: 1;
+  padding: 20px;
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#overdue { background: #e74c3c; }
+#soon { background: #f39c12; }
+#ok { background: #27ae60; }
+
+/* CARD */
+.card {
+  background: #ffffff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+/* MACHINE CARD */
+.machine {
+  border-left: 5px solid #3498db;
+}
+
+/* STATUS */
+.status {
+  font-weight: bold;
+}
+
+.status.ok { color: #27ae60; }
+.status.soon { color: #f39c12; }
+.status.overdue { color: #e74c3c; }
+
+/* INPUTS */
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #2c3e50;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #34495e;
+}
+
+/* DROPDOWN */
+.dropdown {
+  margin-bottom: 10px;
+}
+
+.dropdown button {
+  background: #3498db;
+  font-size: 16px;
+  padding: 12px;
+}
+
+.dropdown button:hover {
+  background: #2980b9;
+}
+
+.content {
+  display: none;
+  padding: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ISSUE LOG */
+.issue {
+  background: #f8f9fa;
+  padding: 8px;
+  margin-top: 6px;
+  border-left: 4px solid #3498db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* LOGIN */
+#login {
+  max-width: 400px;
+  margin: auto;
+}
+
+#login input {
+  margin-bottom: 10px;
+}
+</style>
 </head>
 <body>
 
