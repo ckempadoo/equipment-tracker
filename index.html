@@ -185,11 +185,16 @@ save();
 function save(){localStorage.setItem("data",JSON.stringify(data));}
 
 function login(){
-if(users[user.value]===pass.value){
-login.style.display="none";
-app.style.display="block";
-render();
-}else alert("Wrong login");
+  let u = document.getElementById("user").value.trim();
+  let p = document.getElementById("pass").value.trim();
+
+  if(users[u] && users[u] === p){
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    render();
+  } else {
+    alert("Invalid username or password");
+  }
 }
 
 function populate(){
