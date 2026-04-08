@@ -6,122 +6,151 @@
 
 <style>
 body {
-  font-family: 'Segoe UI';
-  background: #e9edf2;
-  margin: 0;
+  margin:0;
+  font-family:'Segoe UI';
+  background: linear-gradient(135deg,#2c3e50,#4ca1af);
 }
-
-/* MAIN CONTAINER */
-.container {
-  max-width: 1200px;
-  margin: 30px auto;
-  background: #fff;
-  border-radius: 14px;
-  border: 1px solid #dcdcdc;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-  padding: 25px;
-}
-
-h1 { text-align:center; color:#2c3e50; }
 
 /* LOGIN */
-#login { text-align:center; margin-top:60px; }
-#login img { width:300px; margin-bottom:25px; }
+#login {
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
-/* SUMMARY */
+.login-box {
+  background:#fff;
+  padding:40px;
+  border-radius:16px;
+  width:360px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.login-box img { width:240px; margin-bottom:15px; }
+.login-box h1 { margin-bottom:5px; }
+.login-box p { color:#777; margin-bottom:20px; }
+
+.login-box input {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.login-box button {
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(135deg,#3498db,#2980b9);
+  color:#fff;
+  font-weight:bold;
+}
+
+/* APP */
+.container {
+  max-width:1200px;
+  margin:30px auto;
+  background:#fff;
+  border-radius:14px;
+  padding:25px;
+}
+
 #summary { display:flex; gap:15px; margin-bottom:20px;}
 #summary div {
   flex:1;
   padding:20px;
   border-radius:12px;
   color:#fff;
-  font-weight:bold;
   text-align:center;
+  font-weight:bold;
 }
-#overdue { background:#e74c3c;}
-#soon { background:#f39c12;}
-#ok { background:#27ae60;}
+#overdue{background:#e74c3c;}
+#soon{background:#f39c12;}
+#ok{background:#27ae60;}
 
-/* CARD */
 .card {
   background:#fff;
   padding:15px;
-  margin-bottom:15px;
+  margin-bottom:10px;
   border-radius:10px;
   border:1px solid #eee;
 }
 
 .machine { border-left:5px solid #3498db; }
 
-/* BUTTONS */
 button {
   width:100%;
   padding:10px;
-  margin-top:8px;
+  margin-top:6px;
   border:none;
   border-radius:8px;
   background:#2c3e50;
   color:#fff;
   font-weight:bold;
 }
-button:hover { background:#34495e; }
 
-/* INPUT */
-input, select {
+input,select {
   width:100%;
   padding:8px;
-  margin-top:8px;
+  margin-top:6px;
   border-radius:6px;
   border:1px solid #ccc;
 }
 
-/* STATUS */
-.status.ok { color:#27ae60;}
-.status.soon { color:#f39c12;}
-.status.overdue { color:#e74c3c;}
-
-/* DROPDOWN */
 .dropdown button { background:#3498db; }
-.content { display:none; max-height:350px; overflow:auto; padding:10px; }
+.content { display:none; max-height:350px; overflow:auto; }
 
-/* ISSUE */
 .issue {
   background:#f8f9fa;
   padding:6px;
   margin-top:5px;
   border-left:4px solid #3498db;
 }
+
+.search { margin-bottom:15px; }
 </style>
 </head>
 
 <body>
 
-<div id="login" class="container">
+<!-- LOGIN -->
+<div id="login">
+<div class="login-box">
+<div style="font-size:30px;">🔒</div>
 <img src="logo.png">
-<h1>Equipment System Login</h1>
+<h1>Welcome</h1>
+<p>Direct Mail Depot Systems</p>
+
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+
+<button onclick="login()">Sign In</button>
+</div>
 </div>
 
+<!-- APP -->
 <div id="app" class="container" style="display:none;">
 
 <h1>DMD Equipment Dashboard</h1>
 
+<input class="search" id="search" placeholder="Search machines..." onkeyup="render()">
+
 <div id="summary">
-<div id="overdue">Overdue: 0</div>
-<div id="soon">Due Soon: 0</div>
-<div id="ok">OK: 0</div>
+<div id="overdue">0</div>
+<div id="soon">0</div>
+<div id="ok">0</div>
 </div>
 
 <div class="card" id="addBox">
 <h3>Add / Select Machine</h3>
-
 <select id="machineSelect"></select>
-
 <input id="newName" placeholder="New Machine Name">
 <input id="newSerial" placeholder="Serial Number">
-
 <button onclick="addMachine()">Add / Use Machine</button>
 </div>
 
@@ -134,167 +163,117 @@ input, select {
 
 <script>
 
-// MODE
 let readOnly = window.location.search.includes("view=true");
+const users = { Cliff:"DMD2026*" };
 
-// LOGIN
-const users = { tech1:"password1" };
-
-// DATA
 let saved = localStorage.getItem("data");
 let data = saved ? JSON.parse(saved) : null;
 
-// INIT
 if(!data){
 data={}; let id=1;
 function add(n,t,c){
 for(let i=1;i<=c;i++){
-let sn=t.substring(0,2).toUpperCase()+String(id).padStart(4,"0");
+let sn=t.substring(0,2).toUpperCase()+id++;
 data[sn]={name:n+" "+i,serial:sn,type:t,next:"",issues:[]};
-id++;
 }}
-add("SCREEN Truepress Jet520HD","Digital",1);
-add("Océ VarioStream","Laser",4);
-add("MCS Hawk","Inkjet",1);
-add("Videojet","Inkjet",4);
+add("Printer","Digital",5);
 add("Inserter","Inserting",10);
 add("Binder","Bindery",10);
-add("Affixer","Affixing",10);
 save();
 }
 
-// SAVE
-function save(){ localStorage.setItem("data", JSON.stringify(data)); }
+function save(){localStorage.setItem("data",JSON.stringify(data));}
 
-// LOGIN
 function login(){
 if(users[user.value]===pass.value){
-document.getElementById("login").style.display="none";
-document.getElementById("app").style.display="block";
+login.style.display="none";
+app.style.display="block";
 render();
 }else alert("Wrong login");
 }
 
-// DROPDOWN LIST
-function populateMachineDropdown(){
-let s=document.getElementById("machineSelect");
-s.innerHTML='<option value="">Select Existing Machine</option>';
+function populate(){
+let s=machineSelect;
+s.innerHTML='<option value="">Select Machine</option>';
 Object.values(data).forEach(e=>{
 let o=document.createElement("option");
 o.value=e.serial;
-o.text=e.name+" ("+e.serial+")";
+o.text=e.name;
 s.appendChild(o);
 });
 }
 
-// RENDER
 function render(){
+populate();
+
+let search=document.getElementById("search").value.toLowerCase();
 let list=document.getElementById("list");
 list.innerHTML="";
-populateMachineDropdown();
 
-let types=[...new Set(Object.values(data).map(x=>x.type))];
 let o=0,s=0,k=0;
 
-types.forEach(t=>{
-let wrap=document.createElement("div");
-let btn=document.createElement("button");
-btn.innerText=t;
+Object.values(data).forEach(e=>{
+if(search && !e.name.toLowerCase().includes(search)) return;
 
-let content=document.createElement("div");
-content.className="content";
-
-btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
-
-Object.values(data).filter(x=>x.type===t).forEach(e=>{
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let st="OK",cl="ok";
-if(d<0){st="OVERDUE";cl="overdue";o++}
-else if(d<5){st="SOON";cl="soon";s++}
+let st="OK";
+if(d<0){st="OVERDUE";o++}
+else if(d<5){st="SOON";s++}
 else{k++}
 
 let div=document.createElement("div");
 div.className="card machine";
 
-let issues=e.issues.map(i=>`<div class="issue">${i}</div>`).join("");
-let note=e.note?`<div class="issue"><b>Note:</b> ${e.note}</div>`:"";
-
 div.innerHTML=`
 <b>${e.name}</b> (${e.serial})<br>
-<span class="status ${cl}">${st}</span>
-${note}
+${st}<br>
 ${readOnly?"":`<input type="date" onchange="setDate('${e.serial}',this.value)">`}
-${readOnly?"":`<button onclick="log('${e.serial}')">Log Issue</button>`}
-${readOnly?"":`<button onclick="addNote('${e.serial}')">Add Note</button>`}
-${issues}
+${readOnly?"":`<button onclick="log('${e.serial}')">Log</button>`}
+${(e.issues||[]).join("<br>")}
 `;
 
-content.appendChild(div);
+list.appendChild(div);
 });
 
-wrap.appendChild(btn);
-wrap.appendChild(content);
-list.appendChild(wrap);
-});
+overdue.innerText=o;
+soon.innerText=s;
+ok.innerText=k;
 
-overdue.innerText="Overdue: "+o;
-soon.innerText="Due Soon: "+s;
-ok.innerText="OK: "+k;
-
-if(readOnly) document.getElementById("addBox").style.display="none";
+if(readOnly) addBox.style.display="none";
 }
 
-// FUNCTIONS
-function setDate(sn,v){ data[sn].next=v; save(); render(); }
+function setDate(sn,v){data[sn].next=v;save();render();}
 
 function log(sn){
-let t=prompt("Issue / Parts:");
+let t=prompt("Issue:");
 if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - "+t);
-save(); render();
-}
-
-function addNote(sn){
-let n=prompt("Tech note:");
-if(!n)return;
-data[sn].note=n;
-save(); render();
+data[sn].issues.push(new Date().toLocaleString()+" - "+t+" (Cliff)");
+save();render();
 }
 
 function addMachine(){
-let sel=machineSelect.value;
-if(sel){ alert("Selected: "+data[sel].name); return; }
+if(machineSelect.value)return alert("Selected existing");
 
-if(!newName.value||!newSerial.value) return alert("Fill fields");
-
-data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",next:"",issues:[]};
-save(); render();
+data[newSerial.value]={name:newName.value,serial:newSerial.value,type:"Custom",issues:[]};
+save();render();
 }
 
-// SMS
 function sendText(){
 window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
-// PRINT
 function printReport(){
 let w=window.open("");
-let html="<h1>DMD Report</h1>";
+let html="<h1>Report</h1>";
 Object.values(data).forEach(e=>{
-html+=`<h3>${e.name}</h3><p>${e.serial}</p><hr>`;
+html+=`<h3>${e.name}</h3><hr>`;
 });
 w.document.write(html);
 w.print();
 }
 
-// START
-if(readOnly){
-document.getElementById("login").style.display="none";
-document.getElementById("app").style.display="block";
-render();
-}else{
-document.getElementById("login").style.display="block";
-}
+if(readOnly){login.style.display="none";app.style.display="block";render();}
+else login.style.display="flex";
 
 </script>
 
