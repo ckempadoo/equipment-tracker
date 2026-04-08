@@ -182,15 +182,19 @@ let data = JSON.parse(localStorage.getItem("data")||"{}");
 
 // LOGIN
 function login(){
-  let u=user.value.trim();
-  let p=pass.value.trim();
+  let u = document.getElementById("user").value.trim();
+  let p = document.getElementById("pass").value.trim();
 
-  if(users[u] && users[u]===p){
-    currentUser=u;
-    login.style.display="none";
-    app.style.display="block";
+  if(users[u] && users[u] === p){
+    currentUser = u;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
     render();
-  } else alert("Wrong login");
+  } else {
+    alert("Wrong username or password");
+  }
 }
 
 // SAVE
@@ -352,8 +356,8 @@ function sendText(){
 
 // START
 if(readOnly){
-  login.style.display="none";
-  app.style.display="block";
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
   render();
 }
 
