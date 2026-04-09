@@ -5,142 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  margin:0;
-  font-family:'Segoe UI';
-  background:linear-gradient(135deg,#2c3e50,#4ca1af);
-}
+body {margin:0;font-family:'Segoe UI';background:linear-gradient(135deg,#2c3e50,#4ca1af);}
 
-/* LOGIN */
-#login {
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.login-box {
-  background:#fff;
-  padding:40px;
-  border-radius:16px;
-  width:360px;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
-}
-.login-box img { width:220px; margin-bottom:10px; }
-.login-box input {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-.login-box button {
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border:none;
-  border-radius:8px;
-  background:#3498db;
-  color:#fff;
-  font-weight:bold;
-}
+#login {height:100vh;display:flex;align-items:center;justify-content:center;}
+.login-box {background:#fff;padding:40px;border-radius:16px;width:360px;text-align:center;}
 
-/* APP */
-.container {
-  max-width:1200px;
-  margin:20px auto;
-  background:#fff;
-  border-radius:14px;
-  padding:20px;
-}
+.container {max-width:1200px;margin:20px auto;background:#fff;border-radius:14px;padding:20px;}
 
-/* DASHBOARD */
-#summary {
-  display:flex;
-  gap:10px;
-  margin-bottom:15px;
-}
-#summary div {
-  flex:1;
-  padding:15px;
-  border-radius:10px;
-  color:#fff;
-  text-align:center;
-  font-weight:bold;
-}
-#overdue{background:#e74c3c;}
-#soon{background:#f39c12;}
-#ok{background:#27ae60;}
+#summary {display:flex;gap:10px;margin-bottom:15px;}
+#summary div {flex:1;padding:15px;border-radius:10px;color:#fff;text-align:center;font-weight:bold;}
+#overdue{background:#e74c3c;} #soon{background:#f39c12;} #ok{background:#27ae60;}
 
-/* CARDS */
-.card {
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:10px;
-}
-.machine { border-left:5px solid #3498db; }
+.card {border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:10px;}
+.machine {border-left:5px solid #3498db;}
 
-button {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:none;
-  border-radius:6px;
-  background:#2c3e50;
-  color:#fff;
-}
+button {width:100%;padding:8px;margin-top:5px;border:none;border-radius:6px;background:#2c3e50;color:#fff;}
 
-input,select {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  box-sizing:border-box;
-}
+input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 .status.ok{color:green;font-weight:bold;}
 .status.soon{color:orange;font-weight:bold;}
 .status.overdue{color:red;font-weight:bold;}
 
-.content { display:none; padding:10px; }
+.content{display:none;padding:10px;}
+img.thumb{width:70px;margin:4px;border-radius:5px;}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
-  <div class="login-box">
-    <img src="logo.png">
-    <h2>Direct Mail Depot</h2>
-    <input id="user" placeholder="Username">
-    <input id="pass" type="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-  </div>
+<div class="login-box">
+<h2>Direct Mail Depot</h2>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button id="loginBtn">Login</button>
+</div>
 </div>
 
-<!-- APP -->
 <div id="app" class="container" style="display:none;">
 
 <h2>DMD Equipment Dashboard</h2>
 
 <div id="summary">
-  <div id="overdue">Overdue: 0</div>
-  <div id="soon">Due Soon: 0</div>
-  <div id="ok">OK: 0</div>
+<div id="overdue">Overdue: 0</div>
+<div id="soon">Due Soon: 0</div>
+<div id="ok">OK: 0</div>
 </div>
 
 <div class="card">
 <h3>Add Machine</h3>
 
 <select id="category">
-  <option>Screen Inkjet HD520 Digital Press</option>
-  <option>HP Digital Press</option>
-  <option>Laser</option>
-  <option>Inkjet</option>
-  <option>Inserting</option>
-  <option>Bindery</option>
-  <option>Affixing</option>
+<option>Screen Inkjet HD520 Digital Press</option>
+<option>HP Digital Press</option>
+<option>Laser</option>
+<option>Inkjet</option>
+<option>Inserting</option>
+<option>Bindery</option>
+<option>Affixing</option>
 </select>
 
 <input id="name" placeholder="Machine Name">
@@ -150,6 +73,9 @@ input,select {
 </div>
 
 <input id="search" placeholder="Search..." onkeyup="render()">
+
+<button onclick="exportCSV()">Export Excel</button>
+<button onclick="sendText()">Send Text</button>
 
 <div id="list"></div>
 
@@ -161,172 +87,143 @@ input,select {
 
 <script>
 
-const users = {
-  "Cliff": "DMD2026*",
-  "Tech2": "1234"
+const users={"Cliff":"DMD2026*","Tech":"1234"};
+let currentUser="";
+let data=JSON.parse(localStorage.getItem("data")||"{}");
+
+document.getElementById("loginBtn").onclick=function(){
+let u=user.value.trim(),p=pass.value.trim();
+if(users[u]===p){
+currentUser=u;
+login.style.display="none";
+app.style.display="block";
+render();
+}else alert("Wrong login");
 };
 
-let currentUser = "";
-let data = JSON.parse(localStorage.getItem("data") || "{}");
+function save(){localStorage.setItem("data",JSON.stringify(data));}
 
-// LOGIN (bulletproof)
-document.getElementById("loginBtn").addEventListener("click", function(){
-
-  let u = document.getElementById("user").value.trim();
-  let p = document.getElementById("pass").value.trim();
-
-  if(users[u] && users[u] === p){
-    currentUser = u;
-
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    render();
-  } else {
-    alert("Wrong username or password");
-  }
-
-});
-
-function save(){
-  localStorage.setItem("data", JSON.stringify(data));
+function populate(){
+let s=document.getElementById("category");
 }
 
 function addMachine(){
+let name=document.getElementById("name").value.trim();
+let serial=document.getElementById("serial").value.trim();
+let type=document.getElementById("category").value;
 
-  let name = document.getElementById("name").value;
-  let serial = document.getElementById("serial").value;
-  let type = document.getElementById("category").value;
+if(name===""||serial===""){
+alert("Enter fields");
+return;
+}
 
-  if(!name || !serial){
-    alert("Enter all fields");
-    return;
-  }
+data[serial]={name,serial,type,issues:[],images:[],next:""};
+save();
+render();
 
-  data[serial] = {
-    name:name,
-    serial:serial,
-    type:type,
-    issues:[],
-    next:""
-  };
-
-  save();
-  render();
+document.getElementById("name").value="";
+document.getElementById("serial").value="";
 }
 
 function render(){
 
-  let search = document.getElementById("search").value.toLowerCase();
-  let list = document.getElementById("list");
+let search=document.getElementById("search").value.toLowerCase();
+let list=document.getElementById("list");
+list.innerHTML="";
 
-  list.innerHTML = "";
+let o=0,s=0,k=0;
 
-  let overdue=0, soon=0, ok=0;
+let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
-  let types = [...new Set(Object.values(data).map(x=>x.type))];
+types.forEach(t=>{
 
-  types.forEach(t=>{
+let wrap=document.createElement("div");
+let btn=document.createElement("button");
+btn.innerText=t;
 
-    let wrap=document.createElement("div");
+let content=document.createElement("div");
+content.className="content";
 
-    let btn=document.createElement("button");
-    btn.innerText=t;
+btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
-    let content=document.createElement("div");
-    content.className="content";
+Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
-    btn.onclick=()=>{
-      content.style.display=
-      content.style.display==="block"?"none":"block";
-    };
+if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
-    Object.values(data).filter(e=>e.type===t).forEach(e=>{
+let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+let st="OK",cl="ok";
 
-      if(search &&
-         !e.name.toLowerCase().includes(search) &&
-         !e.serial.toLowerCase().includes(search)) return;
+if(d<0){st="OVERDUE";cl="overdue";o++}
+else if(d<5){st="SOON";cl="soon";s++}
+else{k++}
 
-      let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+let imgs=(e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
 
-      let st="OK",cl="ok";
-      if(d<0){st="OVERDUE";cl="overdue";overdue++}
-      else if(d<5){st="SOON";cl="soon";soon++}
-      else{ok++}
+let div=document.createElement("div");
+div.className="card machine";
 
-      let div=document.createElement("div");
-      div.className="card machine";
+div.innerHTML=`
+<b>${e.name}</b> (${e.serial})<br>
+<span class="status ${cl}">${st}</span><br>
 
-      div.innerHTML=`
-      <b>${e.name}</b> (${e.serial})<br>
-      <span class="status ${cl}">${st}</span><br>
+<input type="date" onchange="setDate('${e.serial}',this.value)">
 
-      <input type="date" onchange="setDate('${e.serial}',this.value)">
+<button onclick="logIssue('${e.serial}')">Log Issue</button>
+<button onclick="addPhoto('${e.serial}',this)">Add Photo</button>
 
-      <button onclick="logIssue('${e.serial}')">Log Issue</button>
-      <button onclick="editMachine('${e.serial}')">Edit</button>
-      <button onclick="deleteMachine('${e.serial}')">Delete</button>
+<input type="file" onchange="uploadPhoto('${e.serial}',this)">
 
-      ${(e.issues||[]).join("<br>")}
-      `;
+${(e.issues||[]).join("<br>")}
+${imgs}
+`;
 
-      content.appendChild(div);
-    });
+content.appendChild(div);
+});
 
-    wrap.appendChild(btn);
-    wrap.appendChild(content);
-    list.appendChild(wrap);
-  });
+wrap.appendChild(btn);
+wrap.appendChild(content);
+list.appendChild(wrap);
 
-  document.getElementById("overdue").innerText="Overdue: "+overdue;
-  document.getElementById("soon").innerText="Due Soon: "+soon;
-  document.getElementById("ok").innerText="OK: "+ok;
+});
+
+overdue.innerText="Overdue: "+o;
+soon.innerText="Due Soon: "+s;
+ok.innerText="OK: "+k;
 }
 
-function setDate(sn,v){
-  data[sn].next=v;
-  save();
-  render();
-}
+function setDate(sn,v){data[sn].next=v;save();render();}
 
 function logIssue(sn){
-  let t=prompt("Issue:");
-  if(!t) return;
-
-  data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
-  save();
-  render();
+let t=prompt("Issue:");
+if(!t)return;
+data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
+save();render();
 }
 
-function editMachine(sn){
-
-  let e=data[sn];
-
-  let name=prompt("Name:",e.name);
-  let serial=prompt("Serial:",e.serial);
-  let type=prompt("Category:",e.type);
-
-  if(!name || !serial || !type) return;
-
-  delete data[sn];
-
-  data[serial]={
-    ...e,
-    name:name,
-    serial:serial,
-    type:type
-  };
-
-  save();
-  render();
+function uploadPhoto(sn,input){
+let file=input.files[0];
+let reader=new FileReader();
+reader.onload=e=>{
+data[sn].images.push(e.target.result);
+save();render();
+};
+reader.readAsDataURL(file);
 }
 
-function deleteMachine(sn){
-  if(confirm("Delete machine?")){
-    delete data[sn];
-    save();
-    render();
-  }
+function exportCSV(){
+let rows=[["Name","Serial","Type","Issues"]];
+Object.values(data).forEach(e=>{
+rows.push([e.name,e.serial,e.type,(e.issues||[]).join(" | ")]);
+});
+let csv=rows.map(r=>r.join(",")).join("\n");
+let a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([csv]));
+a.download="report.csv";
+a.click();
+}
+
+function sendText(){
+window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
 </script>
