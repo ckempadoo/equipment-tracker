@@ -120,6 +120,10 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
   </div>
 </div>
 
+  <div style="text-align:center;margin-top:20px;font-size:12px;color:#777;">
+© Clifford Kempadoo
+</div>
+  
 <!-- APP -->
 <div id="app" class="container" style="display:none;">
 
@@ -222,7 +226,11 @@ function render(){
     };
 
     Object.values(data).filter(e=>e.type===t).forEach(e=>{
-      if(search && !e.name.toLowerCase().includes(search)) return;
+      if(
+        search &&
+  !e.name.toLowerCase().includes(search) &&
+  !e.serial.toLowerCase().includes(search)
+) return;
 
       let d = e.next ? (new Date(e.next)-new Date())/86400000 : 999;
       let st="OK", cl="ok";
@@ -238,6 +246,8 @@ function render(){
 
       div.innerHTML = `
         <b>${e.name}</b> (${e.serial})<br>
+        <button onclick="editMachine('${e.serial}')">Edit</button>
+        <button onclick="deleteMachine('${e.serial}')">Delete</button>
         <span class="status ${cl}">${st}</span><br>
         <input type="date" onchange="setDate('${e.serial}',this.value)">
         <button onclick="log('${e.serial}')">Log Issue</button>
@@ -257,20 +267,37 @@ function render(){
   document.getElementById("soon").innerText="Due Soon: "+soon;
   document.getElementById("ok").innerText="OK: "+ok;
 }
-
+<select id="category">
+  <option>Screen Inkjet HD520 Digital Press</option>
+  <option>HP Digital Press</option>
+  <option>Laser</option>
+  <option>Inkjet</option>
+  <option>Inserting</option>
+  <option>Bindery</option>
+  <option>Affixing</option>
+</select>
 function addMachine(){
+
   let name = document.getElementById("newName").value || document.getElementById("machineSelect").value;
   let serial = document.getElementById("newSerial").value;
+  let type = document.getElementById("category").value;
 
-  if(!name || !serial) return alert("Enter fields");
+  if(!name || !serial){
+    alert("Enter fields");
+    return;
+  }
 
   data[serial] = {
-    name:name,
-    serial:serial,
-    type:detectType(name),
-    issues:[],
-    images:[]
+    name: name,
+    serial: serial,
+    type: type,
+    issues: [],
+    images: []
   };
+
+  save();
+  render();
+}
 
   save(); render();
 }
@@ -313,7 +340,39 @@ function printReport(){
 function sendText(){
   window.location.href="sms:17325551234?body=Machine needs attention";
 }
+function editMachine(sn){
 
+  let e = data[sn];
+
+  let name = prompt("Machine Name:", e.name);
+  if(!name) return;
+
+  let serial = prompt("Serial:", e.serial);
+  if(!serial) return;
+
+  let type = prompt("Category:", e.type);
+  if(!type) return;
+
+  delete data[sn];
+
+  data[serial] = {
+    ...e,
+    name: name,
+    serial: serial,
+    type: type
+  };
+
+  save();
+  render();
+}
+
+function deleteMachine(sn){
+  if(confirm("Delete this machine?")){
+    delete data[sn];
+    save();
+    render();
+  }
+}
 </script>
 
 </body>
