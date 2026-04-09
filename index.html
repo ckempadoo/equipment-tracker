@@ -5,25 +5,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { margin:0; font-family:'Segoe UI'; background:linear-gradient(135deg,#2c3e50,#4ca1af); }
+body {
+  margin:0;
+  font-family:'Segoe UI';
+  background:linear-gradient(135deg,#2c3e50,#4ca1af);
+}
 
-#login { height:100vh; display:flex; align-items:center; justify-content:center; }
-.login-box { background:#fff; padding:40px; border-radius:16px; width:360px; text-align:center; }
+/* LOGIN */
+#login {
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.login-box {
+  background:#fff;
+  padding:40px;
+  border-radius:16px;
+  width:360px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.login-box img { width:220px; margin-bottom:10px; }
+.login-box input {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+.login-box button {
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:#3498db;
+  color:#fff;
+  font-weight:bold;
+}
 
-.container { max-width:1200px; margin:20px auto; background:#fff; border-radius:14px; padding:20px; overflow:hidden; }
+/* APP */
+.container {
+  max-width:1200px;
+  margin:20px auto;
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+}
 
-#summary { display:flex; gap:10px; margin-bottom:15px; }
-#summary div { flex:1; padding:15px; border-radius:10px; color:#fff; text-align:center; font-weight:bold; }
-#overdue{background:#e74c3c;} #soon{background:#f39c12;} #ok{background:#27ae60;}
+/* DASHBOARD */
+#summary {
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+#summary div {
+  flex:1;
+  padding:15px;
+  border-radius:10px;
+  color:#fff;
+  text-align:center;
+  font-weight:bold;
+}
+#overdue{background:#e74c3c;}
+#soon{background:#f39c12;}
+#ok{background:#27ae60;}
 
-.card { border:1px solid #ddd; border-radius:10px; padding:10px; margin-bottom:10px; }
+/* CARDS */
+.card {
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:10px;
+}
 .machine { border-left:5px solid #3498db; }
 
-button { width:100%; padding:8px; margin-top:5px; border:none; border-radius:6px; background:#2c3e50; color:#fff; }
+button {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border:none;
+  border-radius:6px;
+  background:#2c3e50;
+  color:#fff;
+}
 
-input,select { width:100%; padding:8px; margin-top:5px; box-sizing:border-box; }
+input,select {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  box-sizing:border-box;
+}
 
-.status.ok{color:green;font-weight:bold;} .status.soon{color:orange;font-weight:bold;} .status.overdue{color:red;font-weight:bold;}
+.status.ok{color:green;font-weight:bold;}
+.status.soon{color:orange;font-weight:bold;}
+.status.overdue{color:red;font-weight:bold;}
 
 .content { display:none; padding:10px; }
 img.thumb { width:70px; margin:4px; border-radius:5px; }
@@ -32,24 +109,26 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
 
 <body>
 
+<!-- LOGIN -->
 <div id="login">
-<div class="login-box">
-<img src="logo.png" width="240">
-<h2>Direct Mail Depot</h2>
-<input id="user" placeholder="Username">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-</div>
+  <div class="login-box">
+    <img src="logo.png">
+    <h2>Direct Mail Depot</h2>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="loginUser()">Login</button>
+  </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="container" style="display:none;">
 
 <h2>DMD Equipment Dashboard</h2>
 
 <div id="summary">
-<div id="overdue">Overdue: 0</div>
-<div id="soon">Due Soon: 0</div>
-<div id="ok">OK: 0</div>
+  <div id="overdue">Overdue: 0</div>
+  <div id="soon">Due Soon: 0</div>
+  <div id="ok">OK: 0</div>
 </div>
 
 <div class="card">
@@ -72,164 +151,167 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
 
 <script>
 
-const users={Cliff:"DMD2026*",Tech2:"1234",Tech3:"1234"};
-let currentUser="";
-let data=JSON.parse(localStorage.getItem("data")||"{}");
+const users = { "Cliff":"DMD2026*", "Tech2":"1234", "Tech3":"1234" };
+let currentUser = "";
 
-function login(){
-let u=user.value,p=pass.value;
-if(users[u]===p){
-currentUser=u;
-login.style.display="none";
-app.style.display="block";
-render();
-}else alert("Wrong login");
+let data = JSON.parse(localStorage.getItem("data") || "{}");
+
+function loginUser(){
+  const u = document.getElementById("user").value.trim();
+  const p = document.getElementById("pass").value.trim();
+
+  if(users[u] && users[u] === p){
+    currentUser = u;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    render();
+  } else {
+    alert("Wrong username or password");
+  }
 }
 
-function save(){localStorage.setItem("data",JSON.stringify(data));}
+function save(){ localStorage.setItem("data", JSON.stringify(data)); }
 
 function detectType(name){
-name=name.toLowerCase();
-if(name.includes("screen")||name.includes("jet")) return "Digital";
-if(name.includes("laser")) return "Laser";
-if(name.includes("ink")) return "Inkjet";
-if(name.includes("insert")) return "Inserting";
-if(name.includes("bind")||name.includes("folder")) return "Bindery";
-return "Custom";
+  name = name.toLowerCase();
+  if(name.includes("screen")||name.includes("jet")) return "Digital";
+  if(name.includes("laser")) return "Laser";
+  if(name.includes("ink")) return "Inkjet";
+  if(name.includes("insert")) return "Inserting";
+  if(name.includes("bind")||name.includes("folder")) return "Bindery";
+  return "Custom";
 }
 
 function populate(){
-machineSelect.innerHTML='<option value="">Select Machine</option>';
-Object.values(data).forEach(e=>{
-let o=document.createElement("option");
-o.value=e.name;
-o.text=e.name;
-machineSelect.appendChild(o);
-});
+  let s = document.getElementById("machineSelect");
+  s.innerHTML = '<option value="">Select Machine</option>';
+
+  Object.values(data).forEach(e=>{
+    let o = document.createElement("option");
+    o.value = e.name;
+    o.text = e.name;
+    s.appendChild(o);
+  });
 }
 
 function render(){
+  populate();
 
-populate();
-list.innerHTML="";
-let search=document.getElementById("search").value.toLowerCase();
-let o=0,s=0,k=0;
+  let search = document.getElementById("search").value.toLowerCase();
+  let list = document.getElementById("list");
+  list.innerHTML = "";
 
-let types=[...new Set(Object.values(data).map(x=>x.type))];
+  let overdue=0, soon=0, ok=0;
 
-types.forEach(t=>{
-let wrap=document.createElement("div");
-let btn=document.createElement("button");
-btn.innerText=t;
+  let types = [...new Set(Object.values(data).map(x=>x.type))];
 
-let content=document.createElement("div");
-content.className="content";
+  types.forEach(t=>{
+    let wrap = document.createElement("div");
 
-btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
+    let btn = document.createElement("button");
+    btn.innerText = t;
 
-Object.values(data).filter(e=>e.type===t).forEach(e=>{
-if(search && !e.name.toLowerCase().includes(search)) return;
+    let content = document.createElement("div");
+    content.className = "content";
 
-let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let st="OK",cl="ok";
-if(d<0){st="OVERDUE";cl="overdue";o++}
-else if(d<5){st="SOON";cl="soon";s++}
-else{k++}
+    btn.onclick = ()=>{
+      content.style.display =
+        content.style.display === "block" ? "none" : "block";
+    };
 
-let imgs=(e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
+    Object.values(data).filter(e=>e.type===t).forEach(e=>{
+      if(search && !e.name.toLowerCase().includes(search)) return;
 
-let div=document.createElement("div");
-div.className="card machine";
+      let d = e.next ? (new Date(e.next)-new Date())/86400000 : 999;
+      let st="OK", cl="ok";
 
-div.innerHTML=`
-<b onclick="editDetails('${e.serial}')">${e.name}</b> (${e.serial})<br>
-<span class="status ${cl}">${st}</span><br>
-<input type="date" onchange="setDate('${e.serial}',this.value)">
-<button onclick="log('${e.serial}')">Log Issue</button>
-<button onclick="addNote('${e.serial}')">Add Note</button>
-<input type="file" onchange="addImage('${e.serial}',this)">
-${(e.details||"")}
-${(e.issues||[]).join("<br>")}
-${imgs}
-`;
+      if(d<0){st="OVERDUE";cl="overdue";overdue++}
+      else if(d<5){st="SOON";cl="soon";soon++}
+      else{ok++}
 
-content.appendChild(div);
-});
+      let div = document.createElement("div");
+      div.className="card machine";
 
-wrap.appendChild(btn);
-wrap.appendChild(content);
-list.appendChild(wrap);
-});
+      let imgs = (e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
 
-overdue.innerText="Overdue: "+o;
-soon.innerText="Due Soon: "+s;
-ok.innerText="OK: "+k;
+      div.innerHTML = `
+        <b>${e.name}</b> (${e.serial})<br>
+        <span class="status ${cl}">${st}</span><br>
+        <input type="date" onchange="setDate('${e.serial}',this.value)">
+        <button onclick="log('${e.serial}')">Log Issue</button>
+        ${(e.issues||[]).join("<br>")}
+        ${imgs}
+      `;
+
+      content.appendChild(div);
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+    list.appendChild(wrap);
+  });
+
+  document.getElementById("overdue").innerText="Overdue: "+overdue;
+  document.getElementById("soon").innerText="Due Soon: "+soon;
+  document.getElementById("ok").innerText="OK: "+ok;
 }
 
 function addMachine(){
-let name=newName.value||machineSelect.value;
-let serial=newSerial.value;
-if(!name||!serial)return alert("Enter fields");
+  let name = document.getElementById("newName").value || document.getElementById("machineSelect").value;
+  let serial = document.getElementById("newSerial").value;
 
-data[serial]={name,serial,type:detectType(name),issues:[],images:[],details:""};
-save();render();
+  if(!name || !serial) return alert("Enter fields");
+
+  data[serial] = {
+    name:name,
+    serial:serial,
+    type:detectType(name),
+    issues:[],
+    images:[]
+  };
+
+  save(); render();
 }
 
-function setDate(sn,v){data[sn].next=v;save();render();}
+function setDate(sn,v){ data[sn].next=v; save(); render(); }
 
 function log(sn){
-let t=prompt("Issue:");
-if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
-save();render();
-}
+  let t = prompt("Issue:");
+  if(!t) return;
 
-function addNote(sn){
-let t=prompt("Note:");
-if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - NOTE: "+t+" ("+currentUser+")");
-save();render();
-}
-
-function editDetails(sn){
-let d=prompt("Enter details (manufacturer, model, etc):",data[sn].details||"");
-if(d!==null){data[sn].details=d;save();render();}
-}
-
-function addImage(sn,input){
-let file=input.files[0];
-let r=new FileReader();
-r.onload=e=>{
-data[sn].images.push(e.target.result);
-save();render();
-};
-r.readAsDataURL(file);
+  data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
+  save(); render();
 }
 
 function exportCSV(){
-let rows=[["Name","Serial","Type","Issues"]];
-Object.values(data).forEach(e=>{
-rows.push([e.name,e.serial,e.type,(e.issues||[]).join(" | ")]);
-});
-let csv=rows.map(r=>r.join(",")).join("\n");
-let a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([csv]));
-a.download="report.csv";
-a.click();
+  let rows=[["Name","Serial","Type","Issues"]];
+  Object.values(data).forEach(e=>{
+    rows.push([e.name,e.serial,e.type,(e.issues||[]).join(" | ")]);
+  });
+
+  let csv=rows.map(r=>r.join(",")).join("\n");
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv]));
+  a.download="report.csv";
+  a.click();
 }
 
 function printReport(){
-let w=window.open("");
-let html="<h1>DMD Report</h1>";
-Object.values(data).forEach(e=>{
-html+=`<h3>${e.name} (${e.serial})</h3>${e.details||""}<br>${(e.issues||[]).join("<br>")}<hr>`;
-});
-w.document.write(html);
-w.print();
+  let w=window.open("");
+  let html="<h1>DMD Report</h1>";
+
+  Object.values(data).forEach(e=>{
+    html+=`<h3>${e.name} (${e.serial})</h3>${(e.issues||[]).join("<br>")}<hr>`;
+  });
+
+  w.document.write(html);
+  w.print();
 }
 
 function sendText(){
-location.href="sms:17325551234?body=Machine needs attention";
+  window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
 </script>
