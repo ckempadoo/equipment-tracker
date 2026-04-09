@@ -116,7 +116,7 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
     <h2>Direct Mail Depot</h2>
     <input id="user" placeholder="Username">
     <input id="pass" type="password" placeholder="Password">
-    <button onclick="loginUser()">Login</button>
+    <button id="loginBtn">Login</button>
   </div>
 </div>
 
@@ -374,6 +374,23 @@ function deleteMachine(sn){
     render();
   }
 }
+ document.getElementById("loginBtn").addEventListener("click", function(){
+
+  const u = document.getElementById("user").value.trim();
+  const p = document.getElementById("pass").value.trim();
+
+  if(users[u] && users[u] === p){
+    currentUser = u;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    render();
+  } else {
+    alert("Wrong username or password");
+  }
+
+}); 
 </script>
 
 </body>
