@@ -103,7 +103,6 @@ input,select {
 .status.overdue{color:red;font-weight:bold;}
 
 .content { display:none; padding:10px; }
-img.thumb { width:70px; margin:4px; border-radius:5px; }
 </style>
 </head>
 
@@ -120,10 +119,6 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
   </div>
 </div>
 
-  <div style="text-align:center;margin-top:20px;font-size:12px;color:#777;">
-© Clifford Kempadoo
-</div>
-  
 <!-- APP -->
 <div id="app" class="container" style="display:none;">
 
@@ -136,34 +131,49 @@ img.thumb { width:70px; margin:4px; border-radius:5px; }
 </div>
 
 <div class="card">
-<h3>Add / Select Machine</h3>
-<select id="machineSelect"></select>
-<input id="newName" placeholder="New Machine Name">
-<input id="newSerial" placeholder="Serial Number">
+<h3>Add Machine</h3>
+
+<select id="category">
+  <option>Screen Inkjet HD520 Digital Press</option>
+  <option>HP Digital Press</option>
+  <option>Laser</option>
+  <option>Inkjet</option>
+  <option>Inserting</option>
+  <option>Bindery</option>
+  <option>Affixing</option>
+</select>
+
+<input id="name" placeholder="Machine Name">
+<input id="serial" placeholder="Serial Number">
+
 <button onclick="addMachine()">Add Machine</button>
 </div>
 
 <input id="search" placeholder="Search..." onkeyup="render()">
 
-<button onclick="exportCSV()">Export Excel</button>
-<button onclick="printReport()">Print Report</button>
-<button onclick="sendText()">Text Maintenance</button>
-
 <div id="list"></div>
+
+<div style="text-align:center;margin-top:20px;font-size:12px;color:#777;">
+© Clifford Kempadoo
+</div>
 
 </div>
 
 <script>
 
-const users = { "Cliff":"DMD2026*", "Tech2":"1234", "Tech3":"1234" };
-let currentUser = "";
+const users = {
+  "Cliff": "DMD2026*",
+  "Tech2": "1234"
+};
 
+let currentUser = "";
 let data = JSON.parse(localStorage.getItem("data") || "{}");
 
-function loginUser(){
+// LOGIN (bulletproof)
+document.getElementById("loginBtn").addEventListener("click", function(){
 
-  const u = document.getElementById("user").value.trim();
-  const p = document.getElementById("pass").value.trim();
+  let u = document.getElementById("user").value.trim();
+  let p = document.getElementById("pass").value.trim();
 
   if(users[u] && users[u] === p){
     currentUser = u;
@@ -175,37 +185,41 @@ function loginUser(){
   } else {
     alert("Wrong username or password");
   }
+
+});
+
+function save(){
+  localStorage.setItem("data", JSON.stringify(data));
 }
 
-function save(){ localStorage.setItem("data", JSON.stringify(data)); }
+function addMachine(){
 
-function detectType(name){
-  name = name.toLowerCase();
-  if(name.includes("screen")||name.includes("jet")) return "Digital";
-  if(name.includes("laser")) return "Laser";
-  if(name.includes("ink")) return "Inkjet";
-  if(name.includes("insert")) return "Inserting";
-  if(name.includes("bind")||name.includes("folder")) return "Bindery";
-  return "Custom";
-}
+  let name = document.getElementById("name").value;
+  let serial = document.getElementById("serial").value;
+  let type = document.getElementById("category").value;
 
-function populate(){
-  let s = document.getElementById("machineSelect");
-  s.innerHTML = '<option value="">Select Machine</option>';
+  if(!name || !serial){
+    alert("Enter all fields");
+    return;
+  }
 
-  Object.values(data).forEach(e=>{
-    let o = document.createElement("option");
-    o.value = e.name;
-    o.text = e.name;
-    s.appendChild(o);
-  });
+  data[serial] = {
+    name:name,
+    serial:serial,
+    type:type,
+    issues:[],
+    next:""
+  };
+
+  save();
+  render();
 }
 
 function render(){
-  populate();
 
   let search = document.getElementById("search").value.toLowerCase();
   let list = document.getElementById("list");
+
   list.innerHTML = "";
 
   let overdue=0, soon=0, ok=0;
@@ -213,47 +227,47 @@ function render(){
   let types = [...new Set(Object.values(data).map(x=>x.type))];
 
   types.forEach(t=>{
-    let wrap = document.createElement("div");
 
-    let btn = document.createElement("button");
-    btn.innerText = t;
+    let wrap=document.createElement("div");
 
-    let content = document.createElement("div");
-    content.className = "content";
+    let btn=document.createElement("button");
+    btn.innerText=t;
 
-    btn.onclick = ()=>{
-      content.style.display =
-        content.style.display === "block" ? "none" : "block";
+    let content=document.createElement("div");
+    content.className="content";
+
+    btn.onclick=()=>{
+      content.style.display=
+      content.style.display==="block"?"none":"block";
     };
 
     Object.values(data).filter(e=>e.type===t).forEach(e=>{
-      if(
-        search &&
-  !e.name.toLowerCase().includes(search) &&
-  !e.serial.toLowerCase().includes(search)
-) return;
 
-      let d = e.next ? (new Date(e.next)-new Date())/86400000 : 999;
-      let st="OK", cl="ok";
+      if(search &&
+         !e.name.toLowerCase().includes(search) &&
+         !e.serial.toLowerCase().includes(search)) return;
 
+      let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+
+      let st="OK",cl="ok";
       if(d<0){st="OVERDUE";cl="overdue";overdue++}
       else if(d<5){st="SOON";cl="soon";soon++}
       else{ok++}
 
-      let div = document.createElement("div");
+      let div=document.createElement("div");
       div.className="card machine";
 
-      let imgs = (e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
+      div.innerHTML=`
+      <b>${e.name}</b> (${e.serial})<br>
+      <span class="status ${cl}">${st}</span><br>
 
-      div.innerHTML = `
-        <b>${e.name}</b> (${e.serial})<br>
-        <button onclick="editMachine('${e.serial}')">Edit</button>
-        <button onclick="deleteMachine('${e.serial}')">Delete</button>
-        <span class="status ${cl}">${st}</span><br>
-        <input type="date" onchange="setDate('${e.serial}',this.value)">
-        <button onclick="log('${e.serial}')">Log Issue</button>
-        ${(e.issues||[]).join("<br>")}
-        ${imgs}
+      <input type="date" onchange="setDate('${e.serial}',this.value)">
+
+      <button onclick="logIssue('${e.serial}')">Log Issue</button>
+      <button onclick="editMachine('${e.serial}')">Edit</button>
+      <button onclick="deleteMachine('${e.serial}')">Delete</button>
+
+      ${(e.issues||[]).join("<br>")}
       `;
 
       content.appendChild(div);
@@ -268,99 +282,39 @@ function render(){
   document.getElementById("soon").innerText="Due Soon: "+soon;
   document.getElementById("ok").innerText="OK: "+ok;
 }
-<select id="category">
-  <option>Screen Inkjet HD520 Digital Press</option>
-  <option>HP Digital Press</option>
-  <option>Laser</option>
-  <option>Inkjet</option>
-  <option>Inserting</option>
-  <option>Bindery</option>
-  <option>Affixing</option>
-</select>
-function addMachine(){
 
-  let name = document.getElementById("newName").value || document.getElementById("machineSelect").value;
-  let serial = document.getElementById("newSerial").value;
-  let type = document.getElementById("category").value;
-
-  if(!name || !serial){
-    alert("Enter fields");
-    return;
-  }
-
-  data[serial] = {
-    name: name,
-    serial: serial,
-    type: type,
-    issues: [],
-    images: []
-  };
-
+function setDate(sn,v){
+  data[sn].next=v;
   save();
   render();
 }
 
-  save(); render();
-}
-
-function setDate(sn,v){ data[sn].next=v; save(); render(); }
-
-function log(sn){
-  let t = prompt("Issue:");
+function logIssue(sn){
+  let t=prompt("Issue:");
   if(!t) return;
 
   data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
-  save(); render();
+  save();
+  render();
 }
 
-function exportCSV(){
-  let rows=[["Name","Serial","Type","Issues"]];
-  Object.values(data).forEach(e=>{
-    rows.push([e.name,e.serial,e.type,(e.issues||[]).join(" | ")]);
-  });
-
-  let csv=rows.map(r=>r.join(",")).join("\n");
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([csv]));
-  a.download="report.csv";
-  a.click();
-}
-
-function printReport(){
-  let w=window.open("");
-  let html="<h1>DMD Report</h1>";
-
-  Object.values(data).forEach(e=>{
-    html+=`<h3>${e.name} (${e.serial})</h3>${(e.issues||[]).join("<br>")}<hr>`;
-  });
-
-  w.document.write(html);
-  w.print();
-}
-
-function sendText(){
-  window.location.href="sms:17325551234?body=Machine needs attention";
-}
 function editMachine(sn){
 
-  let e = data[sn];
+  let e=data[sn];
 
-  let name = prompt("Machine Name:", e.name);
-  if(!name) return;
+  let name=prompt("Name:",e.name);
+  let serial=prompt("Serial:",e.serial);
+  let type=prompt("Category:",e.type);
 
-  let serial = prompt("Serial:", e.serial);
-  if(!serial) return;
-
-  let type = prompt("Category:", e.type);
-  if(!type) return;
+  if(!name || !serial || !type) return;
 
   delete data[sn];
 
-  data[serial] = {
+  data[serial]={
     ...e,
-    name: name,
-    serial: serial,
-    type: type
+    name:name,
+    serial:serial,
+    type:type
   };
 
   save();
@@ -368,29 +322,13 @@ function editMachine(sn){
 }
 
 function deleteMachine(sn){
-  if(confirm("Delete this machine?")){
+  if(confirm("Delete machine?")){
     delete data[sn];
     save();
     render();
   }
 }
- document.getElementById("loginBtn").addEventListener("click", function(){
 
-  const u = document.getElementById("user").value.trim();
-  const p = document.getElementById("pass").value.trim();
-
-  if(users[u] && users[u] === p){
-    currentUser = u;
-
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    render();
-  } else {
-    alert("Wrong username or password");
-  }
-
-}); 
 </script>
 
 </body>
