@@ -6,7 +6,6 @@
 
 <style>
 body {margin:0;font-family:'Segoe UI';background:linear-gradient(135deg,#2c3e50,#4ca1af);}
-
 #login {height:100vh;display:flex;align-items:center;justify-content:center;}
 .login-box {background:#fff;padding:40px;border-radius:16px;width:360px;text-align:center;}
 
@@ -20,7 +19,6 @@ body {margin:0;font-family:'Segoe UI';background:linear-gradient(135deg,#2c3e50,
 .machine {border-left:5px solid #3498db;}
 
 button {width:100%;padding:8px;margin-top:5px;border:none;border-radius:6px;background:#2c3e50;color:#fff;}
-
 input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 .status.ok{color:green;font-weight:bold;}
@@ -28,7 +26,6 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 .status.overdue{color:red;font-weight:bold;}
 
 .content{display:none;padding:10px;}
-img.thumb{width:70px;margin:4px;border-radius:5px;}
 </style>
 </head>
 
@@ -74,7 +71,6 @@ img.thumb{width:70px;margin:4px;border-radius:5px;}
 
 <input id="search" placeholder="Search..." onkeyup="render()">
 
-<button onclick="exportCSV()">Export Excel</button>
 <button onclick="sendText()">Send Text</button>
 
 <div id="list"></div>
@@ -87,70 +83,25 @@ img.thumb{width:70px;margin:4px;border-radius:5px;}
 
 <script>
 
-const users={"Cliff":"DMD2026*","Tech":"1234"};
+const users={"Cliff":"DMD2026*"};
 let currentUser="";
-let saved = JSON.parse(localStorage.getItem("data") || "{}");
 
-let baseData = {
+// 🔥 FULL EQUIPMENT LIST (ALWAYS LOADS)
+let data = {
 
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
+"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[]},
+"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[]},
 
 "HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[]},
 
 "LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[]},
 "LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[]},
 "LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[]},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]},
-
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[]},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[]},
-"IN003": {name:"Videojet 4320 #2",serial:"IN003",type:"Inkjet",issues:[]},
-
-"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[]},
-"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[]},
-
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[]},
-"BD002": {name:"MBO Folder",serial:"BD002",type:"Bindery",issues:[]},
-
-"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[]}
+"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]}
 
 };
 
-// 🔥 THIS LINE IS THE FIX
-let data = { ...baseData, ...saved };
-
-if(Object.keys(data).length === 0){
-
-data = {
-
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
-
-"HP001": {name:"HP Digital Press 1",serial:"HP001",type:"HP Digital Press",issues:[],images:[]},
-
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[]},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[]},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[]},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]},
-
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[]},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[]},
-"IN003": {name:"Videojet 4320 #2",serial:"IN003",type:"Inkjet",issues:[]},
-
-"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[]},
-"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[]},
-
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[]},
-"BD002": {name:"MBO Folder",serial:"BD002",type:"Bindery",issues:[]},
-
-"AF001": {name:"Affixer System 1",serial:"AF001",type:"Affixing",issues:[]}
-
-};
-
-save();
-}  
-  
+// LOGIN
 document.getElementById("loginBtn").onclick=function(){
 let u=user.value.trim(),p=pass.value.trim();
 if(users[u]===p){
@@ -161,37 +112,23 @@ render();
 }else alert("Wrong login");
 };
 
-function save(){localStorage.setItem("data",JSON.stringify(data));}
-
-function populate(){
-let s=document.getElementById("category");
-}
-
+// ADD MACHINE
 function addMachine(){
-let name=document.getElementById("name").value.trim();
-let serial=document.getElementById("serial").value.trim();
+let name=document.getElementById("name").value;
+let serial=document.getElementById("serial").value;
 let type=document.getElementById("category").value;
 
-if(name===""||serial===""){
-alert("Enter fields");
-return;
-}
+if(!name||!serial)return alert("Enter fields");
 
-data[serial]={name,serial,type,issues:[],images:[],next:""};
-save();
+data[serial]={name,serial,type,issues:[]};
 render();
-
-document.getElementById("name").value="";
-document.getElementById("serial").value="";
 }
 
+// RENDER
 function render(){
 
 let search=document.getElementById("search").value.toLowerCase();
-let list=document.getElementById("list");
 list.innerHTML="";
-
-let o=0,s=0,k=0;
 
 let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
@@ -210,31 +147,17 @@ Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
-let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let st="OK",cl="ok";
-
-if(d<0){st="OVERDUE";cl="overdue";o++}
-else if(d<5){st="SOON";cl="soon";s++}
-else{k++}
-
-let imgs=(e.images||[]).map(i=>`<img src="${i}" class="thumb">`).join("");
-
 let div=document.createElement("div");
 div.className="card machine";
 
 div.innerHTML=`
 <b>${e.name}</b> (${e.serial})<br>
-<span class="status ${cl}">${st}</span><br>
-
-<input type="date" onchange="setDate('${e.serial}',this.value)">
 
 <button onclick="logIssue('${e.serial}')">Log Issue</button>
-<button onclick="addPhoto('${e.serial}',this)">Add Photo</button>
-
-<input type="file" onchange="uploadPhoto('${e.serial}',this)">
+<button onclick="editMachine('${e.serial}')">Edit</button>
+<button onclick="deleteMachine('${e.serial}')">Delete</button>
 
 ${(e.issues||[]).join("<br>")}
-${imgs}
 `;
 
 content.appendChild(div);
@@ -245,41 +168,28 @@ wrap.appendChild(content);
 list.appendChild(wrap);
 
 });
-
-overdue.innerText="Overdue: "+o;
-soon.innerText="Due Soon: "+s;
-ok.innerText="OK: "+k;
 }
 
-function setDate(sn,v){data[sn].next=v;save();render();}
-
+// ACTIONS
 function logIssue(sn){
 let t=prompt("Issue:");
 if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
-save();render();
+data[sn].issues.push(t+" ("+currentUser+")");
+render();
 }
 
-function uploadPhoto(sn,input){
-let file=input.files[0];
-let reader=new FileReader();
-reader.onload=e=>{
-data[sn].images.push(e.target.result);
-save();render();
-};
-reader.readAsDataURL(file);
+function editMachine(sn){
+let e=data[sn];
+let name=prompt("Name:",e.name);
+let type=prompt("Category:",e.type);
+if(name&&type){e.name=name;e.type=type;render();}
 }
 
-function exportCSV(){
-let rows=[["Name","Serial","Type","Issues"]];
-Object.values(data).forEach(e=>{
-rows.push([e.name,e.serial,e.type,(e.issues||[]).join(" | ")]);
-});
-let csv=rows.map(r=>r.join(",")).join("\n");
-let a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([csv]));
-a.download="report.csv";
-a.click();
+function deleteMachine(sn){
+if(confirm("Delete machine?")){
+delete data[sn];
+render();
+}
 }
 
 function sendText(){
