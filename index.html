@@ -31,6 +31,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 <body>
 
+<!-- LOGIN -->
 <div id="login">
 <div class="login-box">
 <h2>Direct Mail Depot</h2>
@@ -40,6 +41,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="container" style="display:none;">
 
 <h2>DMD Equipment Dashboard</h2>
@@ -55,7 +57,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 <select id="category">
 <option>Screen Inkjet HD520 Digital Press</option>
-<option>HP Digital Press</option>
+<option>HP Indigo Digital Press</option>
 <option>Laser</option>
 <option>Inkjet</option>
 <option>Inserting</option>
@@ -65,12 +67,14 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 <input id="name" placeholder="Machine Name">
 <input id="serial" placeholder="Serial Number">
+<input id="date" type="date">
 
 <button onclick="addMachine()">Add Machine</button>
 </div>
 
 <input id="search" placeholder="Search..." onkeyup="render()">
 
+<button onclick="exportCSV()">Export Excel</button>
 <button onclick="sendText()">Send Text</button>
 
 <div id="list"></div>
@@ -86,42 +90,56 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 const users={"Cliff":"DMD2026*"};
 let currentUser="";
 
-// 🔥 FULL EQUIPMENT LIST (ALWAYS LOADS)
+// 🔥 FULL EQUIPMENT LIST
 let data = {
 
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[]},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[]},
+"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
 
-"HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[]},
+"HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[],next:""},
 
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[]},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[]},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[]},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]}
+"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""},
+"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[],next:""},
+"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[],next:""},
+"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[],next:""},
 
+"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[],next:""},
+"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[],next:""},
+
+"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[],next:""},
+"BD002": {name:"MBO Folder",serial:"BD002",type:"Bindery",issues:[],next:""},
+
+"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
 };
 
 // LOGIN
-document.getElementById("loginBtn").onclick=function(){
+loginBtn.onclick=function(){
 let u=user.value.trim(),p=pass.value.trim();
 if(users[u]===p){
-currentUser=u;
 login.style.display="none";
 app.style.display="block";
+currentUser=u;
 render();
 }else alert("Wrong login");
 };
 
-// ADD MACHINE
+// ADD MACHINE (FIXED)
 function addMachine(){
-let name=document.getElementById("name").value;
-let serial=document.getElementById("serial").value;
+let name=document.getElementById("name").value.trim();
+let serial=document.getElementById("serial").value.trim();
 let type=document.getElementById("category").value;
+let date=document.getElementById("date").value;
 
-if(!name||!serial)return alert("Enter fields");
+if(name===""||serial===""){
+alert("Enter fields");
+return;
+}
 
-data[serial]={name,serial,type,issues:[]};
+data[serial]={name,serial,type,issues:[],next:date};
 render();
+
+document.getElementById("name").value="";
+document.getElementById("serial").value="";
 }
 
 // RENDER
@@ -129,6 +147,8 @@ function render(){
 
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
+
+let overdue=0,soon=0,ok=0;
 
 let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
@@ -147,11 +167,21 @@ Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
+let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+let st="OK",cl="ok";
+
+if(d<0){st="OVERDUE";cl="overdue";overdue++}
+else if(d<5){st="SOON";cl="soon";soon++}
+else{ok++}
+
 let div=document.createElement("div");
 div.className="card machine";
 
 div.innerHTML=`
 <b>${e.name}</b> (${e.serial})<br>
+<span class="status ${cl}">${st}</span><br>
+
+<input type="date" value="${e.next||""}" onchange="setDate('${e.serial}',this.value)">
 
 <button onclick="logIssue('${e.serial}')">Log Issue</button>
 <button onclick="editMachine('${e.serial}')">Edit</button>
@@ -168,13 +198,23 @@ wrap.appendChild(content);
 list.appendChild(wrap);
 
 });
+
+overdueDiv=document.getElementById("overdue");
+soonDiv=document.getElementById("soon");
+okDiv=document.getElementById("ok");
+
+overdueDiv.innerText="Overdue: "+overdue;
+soonDiv.innerText="Due Soon: "+soon;
+okDiv.innerText="OK: "+ok;
 }
 
-// ACTIONS
+// FUNCTIONS
+function setDate(sn,v){data[sn].next=v;render();}
+
 function logIssue(sn){
 let t=prompt("Issue:");
 if(!t)return;
-data[sn].issues.push(t+" ("+currentUser+")");
+data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
 render();
 }
 
@@ -190,6 +230,16 @@ if(confirm("Delete machine?")){
 delete data[sn];
 render();
 }
+}
+
+function exportCSV(){
+let rows=[["Name","Serial","Type"]];
+Object.values(data).forEach(e=>rows.push([e.name,e.serial,e.type]));
+let csv=rows.map(r=>r.join(",")).join("\n");
+let a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([csv]));
+a.download="report.csv";
+a.click();
 }
 
 function sendText(){
