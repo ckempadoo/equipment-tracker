@@ -90,27 +90,54 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 const users={"Cliff":"DMD2026*"};
 let currentUser="";
 
-// 🔥 FULL EQUIPMENT LIST
-let data = {
+// 🔥 COMPLETE EQUIPMENT MASTER LIST
+const machineList = [
+"SCREEN Truepress Jet520HD 1",
+"SCREEN Truepress Jet520HD 2",
+"HP Digital Press",
 
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"Océ VarioStream 7450 #1",
+"Océ VarioStream 7450 #2",
+"Océ VarioStream 7450 #3",
+"Océ VarioStream 7450 #4",
 
-"HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[],next:""},
+"MCS Hawk",
+"Videojet 4320 #1",
+"Videojet 4320 #2",
+"Videojet 4320 #3",
+"Videojet 4320 #4",
 
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[],next:""},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[],next:""},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[],next:""},
+"MSE Inserter 1",
+"MSE Inserter 2",
+"Flowmaster RS Inserter 1",
+"Flowmaster RS Inserter 2",
+"Flowmaster RS Inserter 3",
+"Flowmaster RS Inserter 4",
+"BlueCrest Rival",
+"Bowe Fusion Inserter",
+"Bell and Howell Inserter 1",
+"Bell and Howell Inserter 2",
 
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[],next:""},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[],next:""},
+"Baum Folder 1",
+"Baum Folder 2",
+"Baum Folder 3",
+"Baum Folder 4",
+"Baum Folder 5",
+"Baum Folder 6",
+"MBO Folder",
+"MBO Accumulator",
+"Spedo Cutter",
+"ESP 400",
 
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[],next:""},
-"BD002": {name:"MBO Folder",serial:"BD002",type:"Bindery",issues:[],next:""},
+"Affixer System 1",
+"Affixer System 2",
+"Tabber 1",
+"Tabber 2",
+"Tabber 3"
+];
 
-"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
-};
+// 🔥 DATA STORAGE
+let data = {};
 
 // LOGIN
 loginBtn.onclick=function(){
@@ -120,35 +147,56 @@ login.style.display="none";
 app.style.display="block";
 currentUser=u;
 render();
+populateDropdown();
 }else alert("Wrong login");
 };
 
-// ADD MACHINE (FIXED)
+// 🔽 POPULATE MACHINE DROPDOWN
+function populateDropdown(){
+
+let select=document.getElementById("name");
+select.innerHTML="";
+
+machineList.forEach(m=>{
+let opt=document.createElement("option");
+opt.value=m;
+opt.textContent=m;
+select.appendChild(opt);
+});
+
+}
+
+// ➕ ADD MACHINE (FIXED)
 function addMachine(){
+
 let name=document.getElementById("name").value.trim();
 let serial=document.getElementById("serial").value.trim();
 let type=document.getElementById("category").value;
-let date=document.getElementById("date").value;
 
 if(name===""||serial===""){
 alert("Enter fields");
 return;
 }
 
-data[serial]={name,serial,type,issues:[],next:date};
-render();
+// AUTO ID
+let id=serial;
 
-document.getElementById("name").value="";
-document.getElementById("serial").value="";
+data[id]={
+name,
+serial,
+type,
+issues:[],
+next:""
+};
+
+render();
 }
 
-// RENDER
+// 🔄 RENDER
 function render(){
 
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
-
-let overdue=0,soon=0,ok=0;
 
 let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
@@ -167,27 +215,18 @@ Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
-let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let st="OK",cl="ok";
-
-if(d<0){st="OVERDUE";cl="overdue";overdue++}
-else if(d<5){st="SOON";cl="soon";soon++}
-else{ok++}
-
 let div=document.createElement("div");
 div.className="card machine";
 
 div.innerHTML=`
-<b>${e.name}</b> (${e.serial})<br>
-<span class="status ${cl}">${st}</span><br>
-
-<input type="date" value="${e.next||""}" onchange="setDate('${e.serial}',this.value)">
+<b>${e.name} (${e.serial})</b><br>
+Serial #: ${e.serial}<br>
 
 <button onclick="logIssue('${e.serial}')">Log Issue</button>
-<button onclick="editMachine('${e.serial}')">Edit</button>
+<button onclick="editMachine('${e.serial}')">Edit Full</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
 
-${(e.issues||[]).join("<br>")}
+${e.issues.join("<br>")}
 `;
 
 content.appendChild(div);
@@ -198,33 +237,42 @@ wrap.appendChild(content);
 list.appendChild(wrap);
 
 });
-
-overdueDiv=document.getElementById("overdue");
-soonDiv=document.getElementById("soon");
-okDiv=document.getElementById("ok");
-
-overdueDiv.innerText="Overdue: "+overdue;
-soonDiv.innerText="Due Soon: "+soon;
-okDiv.innerText="OK: "+ok;
 }
 
-// FUNCTIONS
-function setDate(sn,v){data[sn].next=v;render();}
-
+// 🛠 LOG ISSUE
 function logIssue(sn){
 let t=prompt("Issue:");
 if(!t)return;
-data[sn].issues.push(new Date().toLocaleString()+" - "+t+" ("+currentUser+")");
+data[sn].issues.push(t+" ("+currentUser+")");
 render();
 }
 
+// ✏️ FULL EDIT
 function editMachine(sn){
+
 let e=data[sn];
+
 let name=prompt("Name:",e.name);
+let serial=prompt("Serial:",e.serial);
 let type=prompt("Category:",e.type);
-if(name&&type){e.name=name;e.type=type;render();}
+let issues=prompt("Edit Issues (separate with |):",e.issues.join("|"));
+
+if(!name||!serial||!type)return;
+
+delete data[sn];
+
+data[serial]={
+name,
+serial,
+type,
+issues:issues?issues.split("|"):[],
+next:""
+};
+
+render();
 }
 
+// ❌ DELETE
 function deleteMachine(sn){
 if(confirm("Delete machine?")){
 delete data[sn];
@@ -232,21 +280,11 @@ render();
 }
 }
 
-function exportCSV(){
-let rows=[["Name","Serial","Type"]];
-Object.values(data).forEach(e=>rows.push([e.name,e.serial,e.type]));
-let csv=rows.map(r=>r.join(",")).join("\n");
-let a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([csv]));
-a.download="report.csv";
-a.click();
-}
-
+// 📱 SMS
 function sendText(){
 window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
 </script>
-
 </body>
 </html>
