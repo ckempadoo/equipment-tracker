@@ -89,7 +89,36 @@ img.thumb{width:70px;margin:4px;border-radius:5px;}
 
 const users={"Cliff":"DMD2026*","Tech":"1234"};
 let currentUser="";
-let data=JSON.parse(localStorage.getItem("data")||"{}");
+let saved = JSON.parse(localStorage.getItem("data") || "{}");
+
+let baseData = {
+
+"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
+"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],images:[]},
+
+"HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[]},
+
+"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[]},
+"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[]},
+"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[]},
+"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]},
+
+"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[]},
+"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[]},
+"IN003": {name:"Videojet 4320 #2",serial:"IN003",type:"Inkjet",issues:[]},
+
+"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[]},
+"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[]},
+
+"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[]},
+"BD002": {name:"MBO Folder",serial:"BD002",type:"Bindery",issues:[]},
+
+"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[]}
+
+};
+
+// 🔥 THIS LINE IS THE FIX
+let data = { ...baseData, ...saved };
 
 if(Object.keys(data).length === 0){
 
