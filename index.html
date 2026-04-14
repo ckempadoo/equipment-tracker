@@ -319,21 +319,47 @@ function editMachine(sn){
 
 let e=data[sn];
 
-let name=prompt("Name:",e.name);
-let serial=prompt("Serial:",e.serial);
-let type=prompt("Category:",e.type);
-let issues=prompt("Edit Issues (separate with |):",e.issues.join("|"));
+let form=prompt(
+`EDIT MACHINE
 
-if(!name||!serial||!type)return;
+Name:
+${e.name}
 
+Serial:
+${e.serial}
+
+Category:
+${e.type}
+
+Service Date (YYYY-MM-DD):
+${e.next || ""}
+
+Logs (separate with |):
+${e.issues.join("|")}
+`);
+
+if(!form) return;
+
+let lines=form.split("\n");
+
+let name=lines[1]?.trim();
+let serial=lines[3]?.trim();
+let type=lines[5]?.trim();
+let date=lines[7]?.trim();
+let logs=lines[9]?.trim();
+
+if(!name || !serial || !type) return alert("Invalid input");
+
+// 🔥 SAFE UPDATE
 delete data[sn];
 
 data[serial]={
 name,
 serial,
 type,
-issues:issues?issues.split("|"):[],
-next:""
+next:date,
+issues:logs ? logs.split("|") : [],
+images:e.images || []
 };
 
 render();
