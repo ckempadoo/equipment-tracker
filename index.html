@@ -244,6 +244,8 @@ function render(){
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
 
+let overdue=0, soon=0, ok=0;
+
 let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
 types.forEach(t=>{
@@ -261,16 +263,29 @@ Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
+// 🔥 SERVICE STATUS
+let d=e.next?(new Date(e.next)-new Date())/86400000:999;
+let status="OK",cl="ok";
+
+if(d<0){status="OVERDUE";cl="overdue";overdue++}
+else if(d<5){status="SOON";cl="soon";soon++}
+else{ok++}
+
+let imgs=(e.images||[]).map(i=>`<img src="${i}" width="60">`).join("");
+
 let div=document.createElement("div");
 div.className="card machine";
 
 div.innerHTML=`
 <b>${e.name} (${e.serial})</b><br>
 Serial #: ${e.serial}<br>
+<span class="status ${cl}">${status}</span><br>
 
-<button onclick="logIssue('${e.serial}')">Log Issue</button>
 <button onclick="editMachine('${e.serial}')">Edit Full</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
+
+<input type="file" onchange="uploadPhoto('${e.serial}',this)">
+${imgs}
 
 ${e.issues.join("<br>")}
 `;
@@ -283,6 +298,12 @@ wrap.appendChild(content);
 list.appendChild(wrap);
 
 });
+
+// 🔥 UPDATE DASHBOARD
+document.getElementById("overdue").innerText="Overdue: "+overdue;
+document.getElementById("soon").innerText="Due Soon: "+soon;
+document.getElementById("ok").innerText="OK: "+ok;
+
 }
 
 // 🛠 LOG ISSUE
