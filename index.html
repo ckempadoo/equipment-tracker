@@ -319,38 +319,44 @@ function editMachine(sn){
 
 let e=data[sn];
 
-let form=prompt(
-`EDIT MACHINE
+// STEP 1 - BASIC INFO
+let name=prompt("Machine Name:", e.name);
+if(!name) return;
 
-Name:
-${e.name}
+let serial=prompt("Serial Number:", e.serial);
+if(!serial) return;
 
-Serial:
-${e.serial}
+// STEP 2 - CATEGORY (CLICKABLE OPTIONS)
+let categories=[
+"Screen Inkjet HD520 Digital Press",
+"HP Digital Press",
+"Laser",
+"Inkjet",
+"Inserting",
+"Bindery",
+"Affixing"
+];
 
-Category:
-${e.type}
+let type=prompt(
+"Choose Category:\n\n" +
+categories.map((c,i)=> (i+1)+". "+c).join("\n"),
+e.type
+);
 
-Service Date (YYYY-MM-DD):
-${e.next || ""}
+if(!type) return;
 
-Logs (separate with |):
-${e.issues.join("|")}
-`);
+// allow number selection
+if(!isNaN(type)){
+type=categories[type-1];
+}
 
-if(!form) return;
+// STEP 3 - SERVICE DATE
+let date=prompt("Service Date (YYYY-MM-DD):", e.next || "");
 
-let lines=form.split("\n");
+// STEP 4 - LOGS
+let logs=prompt("Edit Logs (separate with |):", e.issues.join("|"));
 
-let name=lines[1]?.trim();
-let serial=lines[3]?.trim();
-let type=lines[5]?.trim();
-let date=lines[7]?.trim();
-let logs=lines[9]?.trim();
-
-if(!name || !serial || !type) return alert("Invalid input");
-
-// 🔥 SAFE UPDATE
+// 🔥 SAVE SAFELY
 delete data[sn];
 
 data[serial]={
@@ -378,6 +384,34 @@ function sendText(){
 window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
+function exportCSV(){
+
+let rows=[["Name","Serial","Category","Service Date","Logs"]];
+
+Object.values(data).forEach(e=>{
+rows.push([
+e.name,
+e.serial,
+e.type,
+e.next || "",
+(e.issues || []).join(" | ")
+]);
+});
+
+let csvContent = rows.map(r => r.join(",")).join("\n");
+
+let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+let link = document.createElement("a");
+let url = URL.createObjectURL(blob);
+
+link.href = url;
+link.download = "DMD_Equipment_Report.csv";
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}  
 </script>
 </body>
 </html>
