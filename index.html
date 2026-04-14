@@ -283,6 +283,7 @@ Serial #: ${e.serial}<br>
 
 <button onclick="editMachine('${e.serial}')">Edit Full</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
+<button onclick="showQR('${e.serial}')">QR Code</button>
 
 <input type="file" onchange="uploadPhoto('${e.serial}',this)">
 ${imgs}
@@ -411,6 +412,46 @@ link.download = "DMD_Equipment_Report.csv";
 document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
+}  
+function showQR(sn){
+
+let url = window.location.href.split("#")[0] + "#machine=" + sn;
+
+let qr = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" 
++ encodeURIComponent(url);
+
+window.open(qr, "_blank");
+} 
+window.onload = function(){
+
+if(window.location.hash.includes("machine=")){
+let sn = window.location.hash.split("machine=")[1];
+
+setTimeout(()=>{
+openFromQR(sn);
+},500);
+}
+
+};
+
+function openFromQR(sn){
+
+let all = document.querySelectorAll(".content");
+all.forEach(c=>c.style.display="none");
+
+Object.values(data).forEach(e=>{
+if(e.serial === sn){
+
+let buttons = document.querySelectorAll("button");
+
+buttons.forEach(b=>{
+if(b.innerText === e.type){
+b.click();
+}
+});
+
+}
+});
 }  
 </script>
 </body>
