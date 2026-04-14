@@ -57,7 +57,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 <select id="category">
 <option>Screen Inkjet HD520 Digital Press</option>
-<option>HP Indigo Digital Press</option>
+<option>"HP Indigo Digital Press"</option>
 <option>Laser</option>
 <option>Inkjet</option>
 <option>Inserting</option>
@@ -94,7 +94,7 @@ let currentUser="";
 const machineList = [
 "SCREEN Truepress Jet520HD 1",
 "SCREEN Truepress Jet520HD 2",
-"HP Digital Press",
+"<option>HP Indigo Digital Press</option>",
 
 "Océ VarioStream 7450 #1",
 "Océ VarioStream 7450 #2",
@@ -244,9 +244,18 @@ function render(){
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
 
-let overdue=0, soon=0, ok=0;
+// 👇 RIGHT HERE
+let types=[
+"Screen Inkjet HD520 Digital Press",
+"HP Indigo Digital Press",
+"Laser",
+"Inkjet",
+"Inserting",
+"Bindery",
+"Affixing"
+];
 
-let types=["Screen Inkjet HD520 Digital Press","HP Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
+// rest of your code...
 
 types.forEach(t=>{
 
@@ -320,17 +329,17 @@ function editMachine(sn){
 
 let e=data[sn];
 
-// STEP 1 - BASIC INFO
+// BASIC INFO
 let name=prompt("Machine Name:", e.name);
 if(!name) return;
 
 let serial=prompt("Serial Number:", e.serial);
 if(!serial) return;
 
-// STEP 2 - CATEGORY (CLICKABLE OPTIONS)
+// CATEGORY
 let categories=[
 "Screen Inkjet HD520 Digital Press",
-"HP Digital Press",
+"HP Indigo Digital Press",
 "Laser",
 "Inkjet",
 "Inserting",
@@ -345,19 +354,25 @@ e.type
 );
 
 if(!type) return;
+if(!isNaN(type)) type=categories[type-1];
 
-// allow number selection
-if(!isNaN(type)){
-type=categories[type-1];
-}
-
-// STEP 3 - SERVICE DATE
+// SERVICE DATE
 let date=prompt("Service Date (YYYY-MM-DD):", e.next || "");
 
-// STEP 4 - LOGS
-let logs=prompt("Edit Logs (separate with |):", e.issues.join("|"));
+// EXISTING LOGS
+let logs = e.issues.join("|");
 
-// 🔥 SAVE SAFELY
+// 👉 ADD NEW LOG (THIS IS THE NEW FEATURE)
+let newLog = prompt("Add NEW log (leave blank to skip):", "");
+
+if(newLog){
+logs += (logs ? "|" : "") + new Date().toLocaleString() + " - " + newLog + " ("+currentUser+")";
+}
+
+// 👉 OPTIONAL FULL EDIT STILL AVAILABLE
+let editedLogs = prompt("Edit ALL logs if needed (or leave as-is):", logs);
+
+// SAVE
 delete data[sn];
 
 data[serial]={
@@ -365,13 +380,12 @@ name,
 serial,
 type,
 next:date,
-issues:logs ? logs.split("|") : [],
+issues: editedLogs ? editedLogs.split("|") : [],
 images:e.images || []
 };
 
 render();
 }
-
 // ❌ DELETE
 function deleteMachine(sn){
 if(confirm("Delete machine?")){
