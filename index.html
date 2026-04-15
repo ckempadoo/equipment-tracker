@@ -139,7 +139,7 @@ render();
 
 // RENDER
 function render(){
-
+fixCategories();
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
 
@@ -166,7 +166,7 @@ content.className="content";
 
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
-Object.values(data).filter(e=>e.type===t).forEach(e=>{
+Object.values(data).filter(e => (e.type || "").trim() === t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
@@ -306,6 +306,16 @@ alert("Wrong login");
 }
 
 };  
+function fixCategories(){
+
+Object.values(data).forEach(e=>{
+
+if((e.type || "").includes("HP")) e.type = "HP Indigo Digital Press";
+if((e.type || "").includes("Screen")) e.type = "Screen Inkjet HD520 Digital Press";
+
+});
+
+}
 </script>
 
 </body>
