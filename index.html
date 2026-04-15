@@ -19,7 +19,7 @@ body {margin:0;font-family:'Segoe UI';background:linear-gradient(135deg,#2c3e50,
 .machine {border-left:5px solid #3498db;}
 
 button {width:100%;padding:8px;margin-top:5px;border:none;border-radius:6px;background:#2c3e50;color:#fff;}
-input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
+input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 .status.ok{color:green;font-weight:bold;}
 .status.soon{color:orange;font-weight:bold;}
@@ -37,7 +37,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 <h2>Direct Mail Depot</h2>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-<button id="loginBtn">Login</button>
+<button onclick="login()">Login</button>
 </div>
 </div>
 
@@ -57,7 +57,7 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 
 <select id="category">
 <option>Screen Inkjet HD520 Digital Press</option>
-<option>"HP Indigo Digital Press"</option>
+<option>HP Indigo Digital Press</option>
 <option>Laser</option>
 <option>Inkjet</option>
 <option>Inserting</option>
@@ -90,161 +90,55 @@ input,select {width:100%;padding:8px;margin-top:5px;box-sizing:border-box;}
 const users={"Cliff":"DMD2026*"};
 let currentUser="";
 
-// 🔥 COMPLETE EQUIPMENT MASTER LIST
-const machineList = [
-"SCREEN Truepress Jet520HD 1",
-"SCREEN Truepress Jet520HD 2",
-"<option>HP Indigo Digital Press</option>",
-
-"Océ VarioStream 7450 #1",
-"Océ VarioStream 7450 #2",
-"Océ VarioStream 7450 #3",
-"Océ VarioStream 7450 #4",
-
-"MCS Hawk",
-"Videojet 4320 #1",
-"Videojet 4320 #2",
-"Videojet 4320 #3",
-"Videojet 4320 #4",
-
-"MSE Inserter 1",
-"MSE Inserter 2",
-"Flowmaster RS Inserter 1",
-"Flowmaster RS Inserter 2",
-"Flowmaster RS Inserter 3",
-"Flowmaster RS Inserter 4",
-"BlueCrest Rival",
-"Bowe Fusion Inserter",
-"Bell and Howell Inserter 1",
-"Bell and Howell Inserter 2",
-
-"Baum Folder 1",
-"Baum Folder 2",
-"Baum Folder 3",
-"Baum Folder 4",
-"Baum Folder 5",
-"Baum Folder 6",
-"MBO Folder",
-"MBO Accumulator",
-"Spedo Cutter",
-"ESP 400",
-
-"Affixer System 1",
-"Affixer System 2",
-"Tabber 1",
-"Tabber 2",
-"Tabber 3"
-];
-
-// 🔥 DATA STORAGE
+// 🔥 FULL DATA
 let data = {
-
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[]},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[]},
-
-"HP001": {name:"HP Digital Press",serial:"HP001",type:"HP Digital Press",issues:[]},
-
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[]},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[]},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[]},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[]},
-
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[]},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[]},
-"IN003": {name:"Videojet 4320 #2",serial:"IN003",type:"Inkjet",issues:[]},
-"IN004": {name:"Videojet 4320 #3",serial:"IN004",type:"Inkjet",issues:[]},
-"IN005": {name:"Videojet 4320 #4",serial:"IN005",type:"Inkjet",issues:[]},
-
-"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[]},
-"INS002": {name:"MSE Inserter 2",serial:"INS002",type:"Inserting",issues:[]},
-"INS003": {name:"Flowmaster RS Inserter 1",serial:"INS003",type:"Inserting",issues:[]},
-"INS004": {name:"Flowmaster RS Inserter 2",serial:"INS004",type:"Inserting",issues:[]},
-"INS005": {name:"Flowmaster RS Inserter 3",serial:"INS005",type:"Inserting",issues:[]},
-"INS006": {name:"Flowmaster RS Inserter 4",serial:"INS006",type:"Inserting",issues:[]},
-"INS007": {name:"BlueCrest Rival",serial:"INS007",type:"Inserting",issues:[]},
-"INS008": {name:"Bowe Fusion Inserter",serial:"INS008",type:"Inserting",issues:[]},
-"INS009": {name:"Bell and Howell Inserter 1",serial:"INS009",type:"Inserting",issues:[]},
-"INS010": {name:"Bell and Howell Inserter 2",serial:"INS010",type:"Inserting",issues:[]},
-
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[]},
-"BD002": {name:"Baum Folder 2",serial:"BD002",type:"Bindery",issues:[]},
-"BD003": {name:"Baum Folder 3",serial:"BD003",type:"Bindery",issues:[]},
-"BD004": {name:"Baum Folder 4",serial:"BD004",type:"Bindery",issues:[]},
-"BD005": {name:"Baum Folder 5",serial:"BD005",type:"Bindery",issues:[]},
-"BD006": {name:"Baum Folder 6",serial:"BD006",type:"Bindery",issues:[]},
-"BD007": {name:"MBO Folder",serial:"BD007",type:"Bindery",issues:[]},
-"BD008": {name:"MBO Accumulator",serial:"BD008",type:"Bindery",issues:[]},
-"BD009": {name:"Spedo Cutter",serial:"BD009",type:"Bindery",issues:[]},
-"BD010": {name:"ESP 400",serial:"BD010",type:"Bindery",issues:[]},
-
-"AF001": {name:"Affixer System 1",serial:"AF001",type:"Affixing",issues:[]},
-"AF002": {name:"Affixer System 2",serial:"AF002",type:"Affixing",issues:[]},
-"AF003": {name:"Tabber 1",serial:"AF003",type:"Affixing",issues:[]},
-"AF004": {name:"Tabber 2",serial:"AF004",type:"Affixing",issues:[]},
-"AF005": {name:"Tabber 3",serial:"AF005",type:"Affixing",issues:[]}
-
+"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"HP001": {name:"HP Indigo Digital Press",serial:"HP001",type:"HP Indigo Digital Press",issues:[],next:""},
+"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""},
+"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[],next:""},
+"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[],next:""},
+"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[],next:""},
+"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[],next:""},
+"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[],next:""},
+"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
+"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[],next:""},
+"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[],next:""},
+"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
 };
 
 // LOGIN
-loginBtn.onclick=function(){
+function login(){
 let u=user.value.trim(),p=pass.value.trim();
 if(users[u]===p){
 login.style.display="none";
 app.style.display="block";
 currentUser=u;
 render();
-populateDropdown();
 }else alert("Wrong login");
-};
-
-// 🔽 POPULATE MACHINE DROPDOWN
-function populateDropdown(){
-
-let select=document.getElementById("name");
-select.innerHTML="";
-
-machineList.forEach(m=>{
-let opt=document.createElement("option");
-opt.value=m;
-opt.textContent=m;
-select.appendChild(opt);
-});
-
 }
 
-// ➕ ADD MACHINE (FIXED)
+// ADD
 function addMachine(){
-
 let name=document.getElementById("name").value.trim();
 let serial=document.getElementById("serial").value.trim();
 let type=document.getElementById("category").value;
+let date=document.getElementById("date").value;
 
-if(name===""||serial===""){
-alert("Enter fields");
-return;
-}
+if(!name||!serial)return alert("Enter fields");
 
-// AUTO ID
-let id=serial;
-
-data[id]={
-name,
-serial,
-type,
-issues:[],
-next:""
-};
-
+data[serial]={name,serial,type,issues:[],next:date};
 render();
 }
 
-// 🔄 RENDER
+// RENDER
 function render(){
 
 let search=document.getElementById("search").value.toLowerCase();
 list.innerHTML="";
 
-// 👇 RIGHT HERE
+let overdueCount=0, soonCount=0, okCount=0;
+
 let types=[
 "Screen Inkjet HD520 Digital Press",
 "HP Indigo Digital Press",
@@ -254,8 +148,6 @@ let types=[
 "Bindery",
 "Affixing"
 ];
-
-// rest of your code...
 
 types.forEach(t=>{
 
@@ -272,15 +164,12 @@ Object.values(data).filter(e=>e.type===t).forEach(e=>{
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
-// 🔥 SERVICE STATUS
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
 
-if(d<0){status="OVERDUE";cl="overdue";overdue++}
-else if(d<5){status="SOON";cl="soon";soon++}
-else{ok++}
-
-let imgs=(e.images||[]).map(i=>`<img src="${i}" width="60">`).join("");
+if(d<0){status="OVERDUE";cl="overdue";overdueCount++}
+else if(d<5){status="SOON";cl="soon";soonCount++}
+else{okCount++}
 
 let div=document.createElement("div");
 div.className="card machine";
@@ -290,12 +179,9 @@ div.innerHTML=`
 Serial #: ${e.serial}<br>
 <span class="status ${cl}">${status}</span><br>
 
-<button onclick="editMachine('${e.serial}')">Edit Full</button>
+<button onclick="editMachine('${e.serial}')">Edit</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
-<button onclick="showQR('${e.serial}')">QR Code</button>
-
-<input type="file" onchange="uploadPhoto('${e.serial}',this)">
-${imgs}
+<button onclick="showQR('${e.serial}')">QR</button>
 
 ${e.issues.join("<br>")}
 `;
@@ -309,164 +195,97 @@ list.appendChild(wrap);
 
 });
 
-// 🔥 UPDATE DASHBOARD
-document.getElementById("overdue").innerText = "Overdue: " + overdue;
-document.getElementById("soon").innerText = "Due Soon: " + soon;
-document.getElementById("ok").innerText = "OK: " + ok;
-
+document.getElementById("overdue").innerText="Overdue: "+overdueCount;
+document.getElementById("soon").innerText="Due Soon: "+soonCount;
+document.getElementById("ok").innerText="OK: "+okCount;
 }
 
-// 🛠 LOG ISSUE
-function logIssue(sn){
-let t=prompt("Issue:");
-if(!t)return;
-data[sn].issues.push(t+" ("+currentUser+")");
-render();
-}
-
-// ✏️ FULL EDIT
+// EDIT PANEL
 function editMachine(sn){
 
 let e=data[sn];
 
-// BASIC INFO
-let name=prompt("Machine Name:", e.name);
-if(!name) return;
+let panel=document.createElement("div");
+panel.style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:320px;z-index:9999;box-shadow:0 0 15px rgba(0,0,0,0.3);";
 
-let serial=prompt("Serial Number:", e.serial);
-if(!serial) return;
+panel.innerHTML=`
+<h3>Edit Machine</h3>
 
-// CATEGORY
-let categories=[
-"Screen Inkjet HD520 Digital Press",
-"HP Indigo Digital Press",
-"Laser",
-"Inkjet",
-"Inserting",
-"Bindery",
-"Affixing"
-];
+<input id="edit_name" value="${e.name}">
+<input id="edit_serial" value="${e.serial}">
 
-let type=prompt(
-"Choose Category:\n\n" +
-categories.map((c,i)=> (i+1)+". "+c).join("\n"),
-e.type
-);
+<select id="edit_type">
+<option ${e.type==="Screen Inkjet HD520 Digital Press"?"selected":""}>Screen Inkjet HD520 Digital Press</option>
+<option ${e.type==="HP Indigo Digital Press"?"selected":""}>HP Indigo Digital Press</option>
+<option ${e.type==="Laser"?"selected":""}>Laser</option>
+<option ${e.type==="Inkjet"?"selected":""}>Inkjet</option>
+<option ${e.type==="Inserting"?"selected":""}>Inserting</option>
+<option ${e.type==="Bindery"?"selected":""}>Bindery</option>
+<option ${e.type==="Affixing"?"selected":""}>Affixing</option>
+</select>
 
-if(!type) return;
-if(!isNaN(type)) type=categories[type-1];
+<input id="edit_date" type="date" value="${e.next||""}">
 
-// SERVICE DATE
-let date=prompt("Service Date (YYYY-MM-DD):", e.next || "");
+<textarea id="edit_logs">${e.issues.join("\n")}</textarea>
 
-// EXISTING LOGS
-let logs = e.issues.join("|");
+<button onclick="saveEdit('${sn}')">Save</button>
+<button onclick="this.parentElement.remove()">Cancel</button>
+`;
 
-// 👉 ADD NEW LOG (THIS IS THE NEW FEATURE)
-let newLog = prompt("Add NEW log (leave blank to skip):", "");
-
-if(newLog){
-logs += (logs ? "|" : "") + new Date().toLocaleString() + " - " + newLog + " ("+currentUser+")";
+document.body.appendChild(panel);
 }
 
-// 👉 OPTIONAL FULL EDIT STILL AVAILABLE
-let editedLogs = prompt("Edit ALL logs if needed (or leave as-is):", logs);
+// SAVE EDIT
+function saveEdit(oldSn){
 
-// SAVE
-delete data[sn];
+let name=document.getElementById("edit_name").value.trim();
+let serial=document.getElementById("edit_serial").value.trim();
+let type=document.getElementById("edit_type").value;
+let date=document.getElementById("edit_date").value;
+let logs=document.getElementById("edit_logs").value.split("\n");
 
-data[serial]={
-name,
-serial,
-type,
-next:date,
-issues: editedLogs ? editedLogs.split("|") : [],
-images:e.images || []
-};
+let old=data[oldSn];
+delete data[oldSn];
 
+data[serial]={name,serial,type,next:date,issues:logs,images:old.images||[]};
+
+document.querySelector("div[style*='z-index:9999']").remove();
 render();
 }
-// ❌ DELETE
+
+// DELETE
 function deleteMachine(sn){
-if(confirm("Delete machine?")){
+if(confirm("Delete?")){
 delete data[sn];
 render();
 }
 }
 
-// 📱 SMS
+// EXCEL
+function exportCSV(){
+let rows=[["Name","Serial","Category","Date","Logs"]];
+Object.values(data).forEach(e=>{
+rows.push([e.name,e.serial,e.type,e.next||"",e.issues.join(" | ")]);
+});
+let csv=rows.map(r=>r.join(",")).join("\n");
+let a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([csv]));
+a.download="DMD_Report.csv";
+a.click();
+}
+
+// SMS
 function sendText(){
 window.location.href="sms:17325551234?body=Machine needs attention";
 }
 
-function exportCSV(){
-
-let rows=[["Name","Serial","Category","Service Date","Logs"]];
-
-Object.values(data).forEach(e=>{
-rows.push([
-e.name,
-e.serial,
-e.type,
-e.next || "",
-(e.issues || []).join(" | ")
-]);
-});
-
-let csvContent = rows.map(r => r.join(",")).join("\n");
-
-let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-let link = document.createElement("a");
-let url = URL.createObjectURL(blob);
-
-link.href = url;
-link.download = "DMD_Equipment_Report.csv";
-
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-}  
+// QR
 function showQR(sn){
-
-let url = window.location.href.split("#")[0] + "#machine=" + sn;
-
-let qr = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" 
-+ encodeURIComponent(url);
-
-window.open(qr, "_blank");
-} 
-window.onload = function(){
-
-if(window.location.hash.includes("machine=")){
-let sn = window.location.hash.split("machine=")[1];
-
-setTimeout(()=>{
-openFromQR(sn);
-},500);
+let url=location.href.split("#")[0]+"#machine="+sn;
+window.open("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(url));
 }
 
-};
-
-function openFromQR(sn){
-
-let all = document.querySelectorAll(".content");
-all.forEach(c=>c.style.display="none");
-
-Object.values(data).forEach(e=>{
-if(e.serial === sn){
-
-let buttons = document.querySelectorAll("button");
-
-buttons.forEach(b=>{
-if(b.innerText === e.type){
-b.click();
-}
-});
-
-}
-});
-}  
 </script>
+
 </body>
 </html>
