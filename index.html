@@ -166,7 +166,21 @@ content.className="content";
 
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
-Object.values(data).filter(e => (e.type || "").trim() === t).forEach(e=>{
+Object.values(data).forEach(e=>{
+
+let type = (e.type || "").trim();
+
+// force match category
+if(type.includes("Screen")) type = "Screen Inkjet HD520 Digital Press";
+else if(type.includes("HP")) type = "HP Indigo Digital Press";
+else if(type.includes("Laser")) type = "Laser";
+else if(type.includes("Inkjet")) type = "Inkjet";
+else if(type.includes("Insert")) type = "Inserting";
+else if(type.includes("Bind")) type = "Bindery";
+else if(type.includes("Affix") || type.includes("Tab")) type = "Affixing";
+
+// ONLY show if matches tab
+if(type !== t) return;
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
