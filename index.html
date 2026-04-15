@@ -109,13 +109,19 @@ let data = {
 
 // LOGIN
 function login(){
-let u=user.value.trim(),p=pass.value.trim();
-if(users[u]===p){
-login.style.display="none";
-app.style.display="block";
-currentUser=u;
+
+let u = document.getElementById("user").value.trim();
+let p = document.getElementById("pass").value.trim();
+
+if(users[u] === p){
+document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+currentUser = u;
 render();
-}else alert("Wrong login");
+}else{
+alert("Wrong login");
+}
+
 }
 
 // ADD
