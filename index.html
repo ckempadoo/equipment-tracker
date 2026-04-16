@@ -171,20 +171,23 @@ content.className="content";
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
 Object.values(data).forEach(e=>{
-
+if(!e.type) e.type = "Other";
 let type = (e.type || "").trim();
 
 // force match category
-if(type.includes("Screen")) type = "Screen Inkjet HD520 Digital Press";
-else if(type.includes("HP")) type = "HP Indigo Digital Press";
-else if(type.includes("Laser")) type = "Laser";
-else if(type.includes("Inkjet")) type = "Inkjet";
-else if(type.includes("Insert")) type = "Inserting";
-else if(type.includes("Bind")) type = "Bindery";
-else if(type.includes("Affix") || type.includes("Tab")) type = "Affixing";
+let type = (e.type || "").toLowerCase();
+
+if(type.includes("screen")) type = "Screen Inkjet HD520 Digital Press";
+else if(type.includes("hp")) type = "HP Indigo Digital Press";
+else if(type.includes("laser")) type = "Laser";
+else if(type.includes("inkjet")) type = "Inkjet";
+else if(type.includes("insert")) type = "Inserting";
+else if(type.includes("bind")) type = "Bindery";
+else if(type.includes("affix") || type.includes("tab")) type = "Affixing";
+else type = "Other";
 
 // ONLY show if matches tab
-if(type !== t) return;
+if(t !== "Other" && type !== t) return;
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
