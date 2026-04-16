@@ -138,7 +138,7 @@ render();
 }
 
 // RENDER
-populateDropdown();  
+
 function render(){
 fixCategories();
 let search=document.getElementById("search").value.toLowerCase();
@@ -256,6 +256,8 @@ panel.innerHTML=`
 `;
 
 document.body.appendChild(panel);
+document.body.appendChild(panel);
+populateDropdown(); // 👈 ADD THIS  
 }
 
 // SAVE EDIT
@@ -321,6 +323,7 @@ if((e.type || "").includes("Screen")) e.type = "Screen Inkjet HD520 Digital Pres
 function populateDropdown(){
 
 let select = document.getElementById("machineSelect");
+if(!select) return; // 👈 THIS LINE FIXES CRASH
 
 select.innerHTML = '<option value="">Select Existing Machine</option>';
 
@@ -345,21 +348,7 @@ document.getElementById("serial").value = e.serial;
 document.getElementById("date").value = e.next || "";
 
 } 
-document.getElementById("loginBtn").onclick = function(){
 
-let u = document.getElementById("user").value.trim();
-let p = document.getElementById("pass").value.trim();
-
-if(u === "Cliff" && p === "DMD2026*"){
-document.getElementById("login").style.display = "none";
-document.getElementById("app").style.display = "block";
-currentUser = u;
-render();
-}else{
-alert("Wrong login");
-}
-
-};  
 </script>
 
 </body>
