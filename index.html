@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+window.onerror = function(msg){
+alert("Error: " + msg);
+};  
 <title>DMD Equipment System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -37,7 +40,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <h2>Direct Mail Depot</h2>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-<button id="loginBtn">Login</button>
+<button onclick="login()">Login</button>
 </div>
 </div>
 
@@ -142,7 +145,7 @@ render();
 function render(){
 fixCategories();
 let search=document.getElementById("search").value.toLowerCase();
-list.innerHTML="";
+document.getElementById("list").innerHTML="";
 
 let overdueCount=0, soonCount=0, okCount=0;
 
