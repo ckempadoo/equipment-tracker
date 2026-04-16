@@ -138,6 +138,7 @@ render();
 }
 
 // RENDER
+populateDropdown();  
 function render(){
 fixCategories();
 let search=document.getElementById("search").value.toLowerCase();
@@ -230,7 +231,9 @@ panel.style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);back
 
 panel.innerHTML=`
 <h3>Edit Machine</h3>
-
+<select id="machineSelect" onchange="loadMachineFromDropdown()">
+<option value="">Select Existing Machine</option>
+</select>
 <input id="edit_name" value="${e.name}">
 <input id="edit_serial" value="${e.serial}">
 
@@ -330,6 +333,33 @@ if((e.type || "").includes("Screen")) e.type = "Screen Inkjet HD520 Digital Pres
 });
 
 }
+function populateDropdown(){
+
+let select = document.getElementById("machineSelect");
+
+select.innerHTML = '<option value="">Select Existing Machine</option>';
+
+Object.values(data).forEach(e=>{
+let opt = document.createElement("option");
+opt.value = e.serial;
+opt.text = e.name + " (" + e.serial + ")";
+select.appendChild(opt);
+});
+
+}
+
+function loadMachineFromDropdown(){
+
+let sn = document.getElementById("machineSelect").value;
+if(!sn) return;
+
+let e = data[sn];
+
+document.getElementById("name").value = e.name;
+document.getElementById("serial").value = e.serial;
+document.getElementById("date").value = e.next || "";
+
+}  
 </script>
 
 </body>
