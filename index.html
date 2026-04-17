@@ -257,14 +257,15 @@ panel.innerHTML=`
 
 <textarea id="edit_logs">${e.issues.join("\n")}</textarea>
 
+<input id="new_log" placeholder="Add new log">
+<button onclick="addLog('${sn}')">Add Log</button>
+
 <button onclick="saveEdit('${sn}')">Save</button>
 <button onclick="this.parentElement.remove()">Cancel</button>
 `;
 
 document.body.appendChild(panel);
-document.body.appendChild(panel);
-populateDropdown(); // 👈 ADD THIS  
-populateDropdown();  
+populateDropdown();
 }
 
 // SAVE EDIT
@@ -355,7 +356,17 @@ document.getElementById("serial").value = e.serial;
 document.getElementById("date").value = e.next || "";
 
 } 
+function addLog(sn){
 
+let txt = document.getElementById("new_log").value.trim();
+if(!txt) return;
+
+data[sn].issues.push(txt);
+
+document.getElementById("new_log").value = "";
+render();
+
+}
 </script>
 
 </body>
