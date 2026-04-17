@@ -137,18 +137,29 @@ let data = {
 };
 
 // LOGIN
-function login(){
+function safeLogin(){
+
+try {
 
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
-if(users[u] === p){
+if(u === "Cliff" && p === "DMD2026*"){
 document.getElementById("login").style.display = "none";
 document.getElementById("app").style.display = "block";
-currentUser = u;
+
+setTimeout(()=>{
+if(typeof render === "function"){
 render();
+}
+},100);
+
 }else{
 alert("Wrong login");
+}
+
+} catch(e){
+alert("Login error: " + e.message);
 }
 
 }
