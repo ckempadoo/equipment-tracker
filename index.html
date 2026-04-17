@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+function safeLogin(){
+
+try {
+
+let u = document.getElementById("user").value.trim();
+let p = document.getElementById("pass").value.trim();
+
+if(u === "Cliff" && p === "DMD2026*"){
+document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+
+setTimeout(()=>{
+if(typeof render === "function"){
+render();
+}
+},100);
+
+}else{
+alert("Wrong login");
+}
+
+} catch(e){
+alert("Login error: " + e.message);
+}
+
+}  
 window.onerror = function(msg){
 alert("Error: " + msg);
 };  
@@ -40,7 +66,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <h2>Direct Mail Depot</h2>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+<button onclick="safeLogin()">Login</button>
 </div>
 </div>
 
@@ -346,7 +372,10 @@ select.appendChild(opt);
 
 function loadMachineFromDropdown(){
 
-let sn = document.getElementById("machineSelect").value;
+let select = document.getElementById("machineSelect");
+if(!select) return;
+
+let sn = select.value;
 if(!sn) return;
 
 let e = data[sn];
@@ -355,7 +384,7 @@ document.getElementById("name").value = e.name;
 document.getElementById("serial").value = e.serial;
 document.getElementById("date").value = e.next || "";
 
-} 
+}
 function addLog(sn){
 
 let txt = document.getElementById("new_log").value.trim();
