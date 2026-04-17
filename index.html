@@ -1,35 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-function safeLogin(){
 
-try {
-
-let u = document.getElementById("user").value.trim();
-let p = document.getElementById("pass").value.trim();
-
-if(u === "Cliff" && p === "DMD2026*"){
-document.getElementById("login").style.display = "none";
-document.getElementById("app").style.display = "block";
-
-setTimeout(()=>{
-if(typeof render === "function"){
-render();
-}
-},100);
-
-}else{
-alert("Wrong login");
-}
-
-} catch(e){
-alert("Login error: " + e.message);
-}
-
-}  
-window.onerror = function(msg){
-alert("Error: " + msg);
-};  
 <title>DMD Equipment System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
