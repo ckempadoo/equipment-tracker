@@ -196,7 +196,7 @@ else if(type.includes("affix") || type.includes("tab")) type = "Affixing";
 else type = "Other";
 
 // ONLY show if matches tab
-if(t !== "Other" && type !== t) return;
+if(type !== t) return;
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
