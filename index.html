@@ -154,6 +154,7 @@ render();
 function render(){
 
 try {
+
 fixCategories();
 let searchInput = document.getElementById("search");
 let search = searchInput ? searchInput.value.toLowerCase() : "";
@@ -392,7 +393,6 @@ data[sn].issues.push(date + " - " + txt);
 document.getElementById("new_log").value = "";
 render();
 
-}
 
 }
 </script>
