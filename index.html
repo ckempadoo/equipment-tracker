@@ -381,10 +381,14 @@ function addLog(sn){
 let txt = document.getElementById("new_log").value.trim();
 if(!txt) return;
 
-data[sn].issues.push(txt);
+let date = new Date().toLocaleString();
+
+data[sn].issues.push(date + " - " + txt);
 
 document.getElementById("new_log").value = "";
 render();
+
+}
 
 }
 </script>
