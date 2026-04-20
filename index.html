@@ -160,13 +160,15 @@ document.getElementById("list").innerHTML="";
 let overdueCount=0, soonCount=0, okCount=0;
 
 let types=[
+let types=[
 "Screen Inkjet HD520 Digital Press",
 "HP Indigo Digital Press",
 "Laser",
 "Inkjet",
 "Inserting",
 "Bindery",
-"Affixing"
+"Affixing",
+"Other"
 ];
 
 types.forEach(t=>{
@@ -196,7 +198,7 @@ else if(type.includes("affix") || type.includes("tab")) type = "Affixing";
 else type = "Other";
 
 // ONLY show if matches tab
-if(type !== t) return;
+if(t !== "Other" && type !== t) return;
 
 if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
 
