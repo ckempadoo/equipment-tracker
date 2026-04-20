@@ -152,6 +152,8 @@ render();
 // RENDER
 
 function render(){
+
+try {
 fixCategories();
 let searchInput = document.getElementById("search");
 let search = searchInput ? searchInput.value.toLowerCase() : "";
@@ -221,7 +223,7 @@ Serial #: ${e.serial}<br>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
 <button onclick="showQR('${e.serial}')">QR</button>
 
-${e.issues.join("<br>")}
+${(e.issues || []).join("<br>")}
 `;
 
 content.appendChild(div);
