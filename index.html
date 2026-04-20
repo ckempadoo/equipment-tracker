@@ -153,7 +153,8 @@ render();
 
 function render(){
 fixCategories();
-let search=document.getElementById("search").value.toLowerCase();
+let searchInput = document.getElementById("search");
+let search = searchInput ? searchInput.value.toLowerCase() : "";
 document.getElementById("list").innerHTML="";
 
 let overdueCount=0, soonCount=0, okCount=0;
