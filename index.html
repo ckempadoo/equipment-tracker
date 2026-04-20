@@ -306,9 +306,16 @@ render();
 
 // EXCEL
 function exportCSV(){
-let rows=[["Name","Serial","Category","Date","Logs"]];
+let rows=[["Name","Serial","Category","Next Service","Manufacturer","Logs"]];
 Object.values(data).forEach(e=>{
-rows.push([e.name,e.serial,e.type,e.next||"",e.issues.join(" | ")]);
+rows.push([
+e.name,
+e.serial,
+e.type,
+e.next||"",
+(e.manufacturer||""),
+e.issues.join(" | ")
+]);
 });
 let csv=rows.map(r=>r.join(",")).join("\n");
 let a=document.createElement("a");
