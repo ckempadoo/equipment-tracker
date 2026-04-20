@@ -112,8 +112,6 @@ let data = {
 // LOGIN
 function safeLogin(){
 
-try {
-
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
@@ -121,22 +119,18 @@ if(u === "Cliff" && p === "DMD2026*"){
 document.getElementById("login").style.display = "none";
 document.getElementById("app").style.display = "block";
 
-setTimeout(()=>{
-if(typeof render === "function"){
+try {
 render();
+} catch(e){
+console.log("Render failed:", e);
+alert("Logged in, but render has error (check console)");
 }
-},100);
 
 }else{
 alert("Wrong login");
 }
 
-} catch(e){
-alert("Login error: " + e.message);
 }
-
-}
-
 // ADD
 function addMachine(){
 let name=document.getElementById("name").value.trim();
