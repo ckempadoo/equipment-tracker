@@ -220,6 +220,15 @@ panel.innerHTML=`
 <h3>Edit</h3>
 <input id="e_name" value="${e.name}">
 <input id="e_serial" value="${e.serial}">
+<select id="e_type">
+<option ${e.type==="Screen Inkjet HD520 Digital Press"?"selected":""}>Screen Inkjet HD520 Digital Press</option>
+<option ${e.type==="HP Indigo Digital Press"?"selected":""}>HP Indigo Digital Press</option>
+<option ${e.type==="Laser"?"selected":""}>Laser</option>
+<option ${e.type==="Inkjet"?"selected":""}>Inkjet</option>
+<option ${e.type==="Inserting"?"selected":""}>Inserting</option>
+<option ${e.type==="Bindery"?"selected":""}>Bindery</option>
+<option ${e.type==="Affixing"?"selected":""}>Affixing</option>
+</select>
 <input id="e_date" type="date" value="${e.next||""}">
 <textarea id="e_logs">${e.issues.join("\n")}</textarea>
 
@@ -237,20 +246,21 @@ let name=document.getElementById("e_name").value;
 let serial=document.getElementById("e_serial").value;
 let date=document.getElementById("e_date").value;
 let logs=document.getElementById("e_logs").value.split("\n");
+let type=document.getElementById("e_type").value;
 
 delete data[old];
-data[serial]={name,serial,type:"Laser",issues:logs,next:date};
+
+data[serial]={
+name,
+serial,
+type,
+issues:logs,
+next:date
+};
 
 document.querySelector("div[style*='z-index']").remove();
 render();
-}
 
-// DELETE
-function deleteMachine(sn){
-if(confirm("Delete?")){
-delete data[sn];
-render();
-}
 }
 
 // EXPORT
