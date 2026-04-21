@@ -170,7 +170,7 @@ btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"bl
 
 Object.values(data).forEach(e=>{
 
-if(e.type!==t)return;
+if((e.type || "").trim().toLowerCase() !== t.toLowerCase()) return;
 
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
