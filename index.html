@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <title>DMD Equipment System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -38,7 +37,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <h2>Direct Mail Depot</h2>
 <input id="user" placeholder="Username">
 <input id="pass" type="password" placeholder="Password">
-<button onclick="alert('clicked'); safeLogin()">Login</button>
+<button onclick="login()">Login</button>
 </div>
 </div>
 
@@ -88,48 +87,28 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 
 <script>
 
-const users={"Cliff":"DMD2026*"};
-let currentUser="";
-
-// 🔥 FULL DATA
-let data = {
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
-"HP001": {name:"HP Indigo Digital Press",serial:"HP001",type:"HP Indigo Digital Press",issues:[],next:""},
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[],next:""},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[],next:""},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[],next:""},
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[],next:""},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[],next:""},
-"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
-"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[],next:""},
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[],next:""},
-"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
-};
-
 // LOGIN
-function safeLogin(){
-
+function login(){
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
 if(u === "Cliff" && p === "DMD2026*"){
-document.getElementById("login").style.display = "none";
-document.getElementById("app").style.display = "block";
-
-try {
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
 render();
-} catch(e){
-console.log("Render failed:", e);
-alert("Logged in, but render has error (check console)");
-}
-
 }else{
 alert("Wrong login");
 }
-
 }
+
+// DATA
+let data = {
+"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+"HP001": {name:"HP Indigo Digital Press",serial:"HP001",type:"HP Indigo Digital Press",issues:[],next:""},
+"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""}
+};
+
 // ADD
 function addMachine(){
 let name=document.getElementById("name").value.trim();
@@ -144,17 +123,12 @@ render();
 }
 
 // RENDER
-
 function render(){
 
-try {
+let list=document.getElementById("list");
+list.innerHTML="";
 
-fixCategories();
-let searchInput = document.getElementById("search");
-let search = searchInput ? searchInput.value.toLowerCase() : "";
-document.getElementById("list").innerHTML="";
-
-let overdueCount=0, soonCount=0, okCount=0;
+let overdue=0, soon=0, ok=0;
 
 let types=[
 "Screen Inkjet HD520 Digital Press",
@@ -163,8 +137,7 @@ let types=[
 "Inkjet",
 "Inserting",
 "Bindery",
-"Affixing",
-"Other"
+"Affixing"
 ];
 
 types.forEach(t=>{
@@ -179,31 +152,15 @@ content.className="content";
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
 Object.values(data).forEach(e=>{
-if(!e.type) e.type = "Other";
 
-// force match category
-let type = (e.type || "").toLowerCase();
-
-if(type.includes("screen")) type = "Screen Inkjet HD520 Digital Press";
-else if(type.includes("hp")) type = "HP Indigo Digital Press";
-else if(type.includes("laser")) type = "Laser";
-else if(type.includes("inkjet")) type = "Inkjet";
-else if(type.includes("insert")) type = "Inserting";
-else if(type.includes("bind")) type = "Bindery";
-else if(type.includes("affix") || type.includes("tab")) type = "Affixing";
-else type = "Other";
-
-// ONLY show if matches tab
-if(t !== "Other" && type !== t) return;
-
-if(search && !e.name.toLowerCase().includes(search) && !e.serial.toLowerCase().includes(search)) return;
+if(e.type!==t)return;
 
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
 
-if(d<0){status="OVERDUE";cl="overdue";overdueCount++}
-else if(d<5){status="SOON";cl="soon";soonCount++}
-else{okCount++}
+if(d<0){status="OVERDUE";cl="overdue";overdue++}
+else if(d<5){status="SOON";cl="soon";soon++}
+else{ok++}
 
 let div=document.createElement("div");
 div.className="card machine";
@@ -215,9 +172,8 @@ Serial #: ${e.serial}<br>
 
 <button onclick="editMachine('${e.serial}')">Edit</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
-<button onclick="showQR('${e.serial}')">QR</button>
 
-${(e.issues || []).join("<br>")}
+${e.issues.join("<br>")}
 `;
 
 content.appendChild(div);
@@ -225,72 +181,50 @@ content.appendChild(div);
 
 wrap.appendChild(btn);
 wrap.appendChild(content);
-document.getElementById("list").appendChild(wrap);
+list.appendChild(wrap);
 
 });
 
-document.getElementById("overdue").innerText="Overdue: "+overdueCount;
-document.getElementById("soon").innerText="Due Soon: "+soonCount;
-document.getElementById("ok").innerText="OK: "+okCount;
+document.getElementById("overdue").innerText="Overdue: "+overdue;
+document.getElementById("soon").innerText="Due Soon: "+soon;
+document.getElementById("ok").innerText="OK: "+ok;
+
 }
 
-// EDIT PANEL
+// EDIT
 function editMachine(sn){
 
 let e=data[sn];
 
 let panel=document.createElement("div");
-panel.style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:320px;z-index:9999;box-shadow:0 0 15px rgba(0,0,0,0.3);";
+panel.style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:300px;z-index:9999;";
 
 panel.innerHTML=`
-<h3>Edit Machine</h3>
-<select id="machineSelect" onchange="loadMachineFromDropdown()">
-<option value="">Select Existing Machine</option>
-</select>
-<input id="edit_name" value="${e.name}">
-<input id="edit_serial" value="${e.serial}">
-<input id="edit_manufacturer" placeholder="Manufacturer" value="${e.manufacturer||""}">
-
-<select id="edit_type">
-<option ${e.type==="Screen Inkjet HD520 Digital Press"?"selected":""}>Screen Inkjet HD520 Digital Press</option>
-<option ${e.type==="HP Indigo Digital Press"?"selected":""}>HP Indigo Digital Press</option>
-<option ${e.type==="Laser"?"selected":""}>Laser</option>
-<option ${e.type==="Inkjet"?"selected":""}>Inkjet</option>
-<option ${e.type==="Inserting"?"selected":""}>Inserting</option>
-<option ${e.type==="Bindery"?"selected":""}>Bindery</option>
-<option ${e.type==="Affixing"?"selected":""}>Affixing</option>
-</select>
-
-<input id="edit_date" type="date" value="${e.next||""}">
-
-<textarea id="edit_logs">${e.issues.join("\n")}</textarea>
-
-<input id="new_log" placeholder="Add new log">
-<button onclick="addLog('${sn}')">Add Log</button>
+<h3>Edit</h3>
+<input id="e_name" value="${e.name}">
+<input id="e_serial" value="${e.serial}">
+<input id="e_date" type="date" value="${e.next||""}">
+<textarea id="e_logs">${e.issues.join("\n")}</textarea>
 
 <button onclick="saveEdit('${sn}')">Save</button>
-<button onclick="this.parentElement.remove()">Cancel</button>
+<button onclick="this.parentElement.remove()">Close</button>
 `;
 
 document.body.appendChild(panel);
-populateDropdown();
 }
 
-// SAVE EDIT
-function saveEdit(oldSn){
-let manufacturer=document.getElementById("edit_manufacturer").value;
-let name=document.getElementById("edit_name").value.trim();
-let serial=document.getElementById("edit_serial").value.trim();
-let type=document.getElementById("edit_type").value;
-let date=document.getElementById("edit_date").value;
-let logs=document.getElementById("edit_logs").value.split("\n");
+// SAVE
+function saveEdit(old){
 
-let old=data[oldSn];
-delete data[oldSn];
+let name=document.getElementById("e_name").value;
+let serial=document.getElementById("e_serial").value;
+let date=document.getElementById("e_date").value;
+let logs=document.getElementById("e_logs").value.split("\n");
 
-data[serial]={name,serial,type,next:date,issues:logs,images:old.images||[]};
+delete data[old];
+data[serial]={name,serial,type:"Laser",issues:logs,next:date};
 
-document.querySelector("div[style*='z-index:9999']").remove();
+document.querySelector("div[style*='z-index']").remove();
 render();
 }
 
@@ -302,92 +236,24 @@ render();
 }
 }
 
-// EXCEL
+// EXPORT
 function exportCSV(){
-let rows=[["Name","Serial","Category","Next Service","Manufacturer","Logs"]];
+let rows=[["Name","Serial","Type","Date"]];
 Object.values(data).forEach(e=>{
-rows.push([
-e.name,
-e.serial,
-e.type,
-e.next||"",
-(e.manufacturer||""),
-e.issues.join(" | ")
-]);
+rows.push([e.name,e.serial,e.type,e.next]);
 });
 let csv=rows.map(r=>r.join(",")).join("\n");
 let a=document.createElement("a");
 a.href=URL.createObjectURL(new Blob([csv]));
-a.download="DMD_Report.csv";
+a.download="report.csv";
 a.click();
 }
 
 // SMS
 function sendText(){
-window.location.href="sms:17325551234?body=Machine needs attention";
+window.location.href="sms:17325551234?body=Check machines";
 }
 
-// QR
-function showQR(sn){
-let url=location.href.split("#")[0]+"#machine="+sn;
-window.open("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(url));
-}
-
-function fixCategories(){
-
-Object.values(data).forEach(e=>{
-
-if((e.type || "").includes("HP")) e.type = "HP Indigo Digital Press";
-if((e.type || "").includes("Screen")) e.type = "Screen Inkjet HD520 Digital Press";
-
-});
-
-}
-function populateDropdown(){
-
-let select = document.getElementById("machineSelect");
-if(!select) return; // 👈 THIS LINE FIXES CRASH
-
-select.innerHTML = '<option value="">Select Existing Machine</option>';
-
-Object.values(data).forEach(e=>{
-let opt = document.createElement("option");
-opt.value = e.serial;
-opt.text = e.name + " (" + e.serial + ")";
-select.appendChild(opt);
-});
-
-}
-
-function loadMachineFromDropdown(){
-
-let select = document.getElementById("machineSelect");
-if(!select) return;
-
-let sn = select.value;
-if(!sn) return;
-
-let e = data[sn];
-
-document.getElementById("name").value = e.name;
-document.getElementById("serial").value = e.serial;
-document.getElementById("date").value = e.next || "";
-
-}
-function addLog(sn){
-
-let txt = document.getElementById("new_log").value.trim();
-if(!txt) return;
-
-let date = new Date().toLocaleString();
-
-data[sn].issues.push(date + " - " + txt);
-
-document.getElementById("new_log").value = "";
-render();
-
-
-}
 </script>
 
 </body>
