@@ -288,7 +288,18 @@ a.click();
 function sendText(){
 window.location.href="sms:17325551234?body=Check machines";
 }
+function deleteMachine(sn){
 
+if(!data[sn]) return;
+
+if(confirm("Delete this machine?")){
+
+delete data[sn];
+render();
+
+}
+
+}
 </script>
 
 </body>
