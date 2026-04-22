@@ -198,7 +198,7 @@ Serial #: ${e.serial}<br>
 <button onclick="editMachine('${e.serial}')">Edit</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
 
-${e.issues.join("<br>")}
+${(e.issues || []).join("<br>")}
 `;
 
 content.appendChild(div);
