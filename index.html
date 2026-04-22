@@ -300,6 +300,16 @@ render();
 }
 
 }
+function deleteMachine(sn){
+
+if(!data[sn]) return;
+
+if(confirm("Delete this machine?")){
+delete data[sn];
+render();
+}
+
+}  
 </script>
 
 </body>
