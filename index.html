@@ -183,15 +183,9 @@ btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"bl
 
 Object.values(data).forEach(e=>{
 
-let type = (e.type || "").toLowerCase();
+let type = normalizeType(e.type);
 
-if(t.toLowerCase().includes("screen") && !type.includes("screen")) return;
-if(t.toLowerCase().includes("hp") && !type.includes("hp")) return;
-if(t.toLowerCase().includes("laser") && !type.includes("laser")) return;
-if(t.toLowerCase().includes("inkjet") && !type.includes("inkjet")) return;
-if(t.toLowerCase().includes("insert") && !type.includes("insert")) return;
-if(t.toLowerCase().includes("bind") && !type.includes("bind")) return;
-if(t.toLowerCase().includes("affix") && !type.includes("affix")) return;
+if(type !== t) return;
 
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
