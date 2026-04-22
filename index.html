@@ -100,7 +100,15 @@ render();
 alert("Wrong login");
 }
 }
+if(u === "Cliff" && p === "DMD2026*"){
 
+loadData(); // 👈 ADD THIS
+
+document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+
+render();
+}
 // DATA
 let data = {
 
@@ -343,6 +351,18 @@ document.getElementById("serial").value="";
 document.getElementById("date").value="";
 
 render();
+
+}
+function saveData(){
+localStorage.setItem("dmd_machines", JSON.stringify(data));
+}
+function loadData(){
+
+let saved = localStorage.getItem("dmd_machines");
+
+if(saved){
+data = JSON.parse(saved);
+}
 
 }  
 </script>
