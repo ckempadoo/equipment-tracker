@@ -312,6 +312,41 @@ render();
 }
 
 }
+function addMachine(){
+
+let name = document.getElementById("name").value.trim();
+let serial = document.getElementById("serial").value.trim();
+let type = document.getElementById("category").value;
+let date = document.getElementById("date").value;
+
+if(name === "" || serial === ""){
+alert("Please enter Name and Serial");
+return;
+}
+
+// prevent duplicate serials
+if(data[serial]){
+alert("Serial already exists");
+return;
+}
+
+// save machine
+data[serial] = {
+name: name,
+serial: serial,
+type: type,
+issues: [],
+next: date
+};
+
+// clear fields
+document.getElementById("name").value="";
+document.getElementById("serial").value="";
+document.getElementById("date").value="";
+
+render();
+
+}  
 </script>
 
 </body>
