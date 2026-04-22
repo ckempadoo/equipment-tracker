@@ -138,7 +138,20 @@ if(!name||!serial)return alert("Enter fields");
 data[serial]={name,serial,type,issues:[],next:date};
 render();
 }
+function normalizeType(t){
 
+t = (t || "").toLowerCase().trim();
+
+if(t.includes("screen")) return "Screen Inkjet HD520 Digital Press";
+if(t.includes("hp")) return "HP Indigo Digital Press";
+if(t.includes("laser")) return "Laser";
+if(t.includes("inkjet")) return "Inkjet";
+if(t.includes("insert")) return "Inserting";
+if(t.includes("bind")) return "Bindery";
+if(t.includes("affix")) return "Affixing";
+
+return "Other";
+}
 // RENDER
 function render(){
 
