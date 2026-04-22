@@ -183,17 +183,35 @@ btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"bl
 
 Object.values(data).forEach(e=>{
 
-let type = normalizeType(e.type);
+let type = (e.type || "").toLowerCase();
 
+// normalize ON THE SPOT (no separate function needed)
+if(type.includes("screen")) type = "Screen Inkjet HD520 Digital Press";
+else if(type.includes("hp")) type = "HP Indigo Digital Press";
+else if(type.includes("laser")) type = "Laser";
+else if(type.includes("inkjet")) type = "Inkjet";
+else if(type.includes("insert")) type = "Inserting";
+else if(type.includes("bind")) type = "Bindery";
+else if(type.includes("affix")) type = "Affixing";
+else type = "Other";
+
+// match tab
 if(type !== t) return;
 
+// search filter (safe)
+if(search && 
+!e.name.toLowerCase().includes(search) && 
+!e.serial.toLowerCase().includes(search)) return;
+
+// status calc
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
 
-if(d<0){status="OVERDUE";cl="overdue";overdue++}
-else if(d<5){status="SOON";cl="soon";soon++}
-else{ok++}
+if(d<0){status="OVERDUE";cl="overdue";overdueCount++}
+else if(d<5){status="SOON";cl="soon";soonCount++}
+else{okCount++}
 
+// card
 let div=document.createElement("div");
 div.className="card machine";
 
@@ -209,8 +227,8 @@ ${(e.issues || []).join("<br>")}
 `;
 
 content.appendChild(div);
-});
 
+});
 wrap.appendChild(btn);
 wrap.appendChild(content);
 list.appendChild(wrap);
