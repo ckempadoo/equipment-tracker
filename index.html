@@ -127,17 +127,7 @@ let data = {
 };
 
 // ADD
-function addMachine(){
-let name=document.getElementById("name").value.trim();
-let serial=document.getElementById("serial").value.trim();
-let type=document.getElementById("category").value;
-let date=document.getElementById("date").value;
-
-if(!name||!serial)return alert("Enter fields");
-
-data[serial]={name,serial,type,issues:[],next:date};
-render();
-}
+addMachine
 function normalizeType(t){
 
 t = (t || "").toLowerCase().trim();
@@ -196,7 +186,8 @@ else if(type.includes("affix")) type="Affixing";
 else return;
 
 // match tab
-if(type !== t) return;
+if(!t.toLowerCase().includes(type.toLowerCase()) &&
+!type.toLowerCase().includes(t.toLowerCase())) return;
 
 // status
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
