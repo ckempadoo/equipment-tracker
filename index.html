@@ -173,23 +173,21 @@ btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"bl
 
 Object.values(data).forEach(e=>{
 
-let type=(e.type||"").toLowerCase();
+if(!e || !e.type) return;
 
-// normalize safely
-if(type.includes("screen")) type="Screen Inkjet HD520 Digital Press";
-else if(type.includes("hp")) type="HP Indigo Digital Press";
-else if(type.includes("laser")) type="Laser";
-else if(type.includes("inkjet")) type="Inkjet";
-else if(type.includes("insert")) type="Inserting";
-else if(type.includes("bind")) type="Bindery";
-else if(type.includes("affix")) type="Affixing";
-else return;
+// normalize type EXACTLY
+let cleanType = e.type.trim();
 
-// match tab
-if(!t.toLowerCase().includes(type.toLowerCase()) &&
-!type.toLowerCase().includes(t.toLowerCase())) return;
+// HARD match categories
+if(cleanType === "Screen Inkjet HD520 Digital Press" && t !== "Screen Inkjet HD520 Digital Press") return;
+if(cleanType === "HP Indigo Digital Press" && t !== "HP Indigo Digital Press") return;
+if(cleanType === "Laser" && t !== "Laser") return;
+if(cleanType === "Inkjet" && t !== "Inkjet") return;
+if(cleanType === "Inserting" && t !== "Inserting") return;
+if(cleanType === "Bindery" && t !== "Bindery") return;
+if(cleanType === "Affixing" && t !== "Affixing") return;
 
-// status
+// STATUS
 let d=e.next?(new Date(e.next)-new Date())/86400000:999;
 let status="OK",cl="ok";
 
@@ -197,7 +195,7 @@ if(d<0){status="OVERDUE";cl="overdue";overdue++}
 else if(d<5){status="SOON";cl="soon";soon++}
 else{ok++}
 
-// card
+// CARD
 let div=document.createElement("div");
 div.className="card machine";
 
