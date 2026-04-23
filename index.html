@@ -255,6 +255,27 @@ panel.innerHTML=`
 </select>
 <input id="e_date" type="date" value="${e.next||""}">
 <textarea id="e_logs">${e.issues.join("\n")}</textarea>
+panel.innerHTML = `
+<h3>Edit</h3>
+
+<input id="e_name" value="${e.name}">
+<input id="e_serial" value="${e.serial}">
+
+<select id="e_type">
+...
+</select>
+
+<input id="e_date" type="date" value="${e.next||""}">
+
+<textarea id="e_logs">${e.issues.join("\n")}</textarea>
+
+<!-- 👇 ADD HERE -->
+<input id="new_log" placeholder="Add new log">
+<button onclick="addLog('${sn}')">Add Log</button>
+
+<button onclick="saveEdit('${sn}')">Save</button>
+<button onclick="this.parentElement.remove()">Close</button>
+`;
 
 <button onclick="saveEdit('${sn}')">Save</button>
 <button onclick="this.parentElement.remove()">Close</button>
