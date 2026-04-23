@@ -257,6 +257,7 @@ panel.innerHTML=`
 
 <button onclick="saveEdit('${sn}')">Save</button>
 <button onclick="this.parentElement.remove()">Close</button>
+<button onclick="deleteMachine('${sn}')">Delete Machine</button>
 `;
 
 document.body.appendChild(panel);
@@ -311,6 +312,7 @@ if(!data[sn]) return;
 if(confirm("Delete this machine?")){
 
 delete data[sn];
+saveData();  
 render();
 
 }
