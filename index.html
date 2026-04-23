@@ -235,15 +235,17 @@ document.getElementById("ok").innerText="OK: "+ok;
 // EDIT
 function editMachine(sn){
 
-let e=data[sn];
+let e = data[sn];
 
-let panel=document.createElement("div");
-panel.style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:300px;z-index:9999;";
+let panel = document.createElement("div");
+panel.style = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:300px;z-index:9999;";
 
-panel.innerHTML=`
+panel.innerHTML = `
 <h3>Edit</h3>
+
 <input id="e_name" value="${e.name}">
 <input id="e_serial" value="${e.serial}">
+
 <select id="e_type">
 <option ${e.type==="Screen Inkjet HD520 Digital Press"?"selected":""}>Screen Inkjet HD520 Digital Press</option>
 <option ${e.type==="HP Indigo Digital Press"?"selected":""}>HP Indigo Digital Press</option>
@@ -253,33 +255,17 @@ panel.innerHTML=`
 <option ${e.type==="Bindery"?"selected":""}>Bindery</option>
 <option ${e.type==="Affixing"?"selected":""}>Affixing</option>
 </select>
-<input id="e_date" type="date" value="${e.next||""}">
-<textarea id="e_logs">${e.issues.join("\n")}</textarea>
-panel.innerHTML = `
-<h3>Edit</h3>
-
-<input id="e_name" value="${e.name}">
-<input id="e_serial" value="${e.serial}">
-
-<select id="e_type">
-...
-</select>
 
 <input id="e_date" type="date" value="${e.next||""}">
 
-<textarea id="e_logs">${e.issues.join("\n")}</textarea>
+<textarea id="e_logs">${(e.issues||[]).join("\\n")}</textarea>
 
-<!-- 👇 ADD HERE -->
 <input id="new_log" placeholder="Add new log">
 <button onclick="addLog('${sn}')">Add Log</button>
 
 <button onclick="saveEdit('${sn}')">Save</button>
-<button onclick="this.parentElement.remove()">Close</button>
-`;
-
-<button onclick="saveEdit('${sn}')">Save</button>
-<button onclick="this.parentElement.remove()">Close</button>
 <button onclick="deleteMachine('${sn}')">Delete Machine</button>
+<button onclick="this.parentElement.remove()">Close</button>
 `;
 
 document.body.appendChild(panel);
