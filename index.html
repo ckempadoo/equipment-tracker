@@ -211,6 +211,7 @@ Serial #: ${e.serial}<br>
 
 <button onclick="editMachine('${e.serial}')">Edit</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
+<button onclick="showQR('${e.serial}')">QR</button>
 
 ${(e.issues||[]).join("<br>")}
 `;
@@ -364,7 +365,25 @@ if(saved){
 data = JSON.parse(saved);
 }
 
-}  
+}
+window.onload = function(){
+
+let hash = location.hash;
+
+if(hash.includes("machine=")){
+let sn = hash.split("machine=")[1];
+
+loadData();
+render();
+
+setTimeout(()=>{
+if(data[sn]){
+editMachine(sn);
+}
+},500);
+}
+
+};  
 </script>
 
 </body>
