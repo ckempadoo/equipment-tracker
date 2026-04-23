@@ -89,25 +89,23 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 
 // LOGIN
 function login(){
+
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
 if(u === "Cliff" && p === "DMD2026*"){
+
+loadData(); // ✅ LOAD SAVED DATA HERE
+
 document.getElementById("login").style.display="none";
 document.getElementById("app").style.display="block";
+
 render();
+
 }else{
 alert("Wrong login");
 }
-}
-if(u === "Cliff" && p === "DMD2026*"){
 
-loadData(); // 👈 ADD THIS
-
-document.getElementById("login").style.display = "none";
-document.getElementById("app").style.display = "block";
-
-render();
 }
 // DATA
 let data = {
