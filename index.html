@@ -383,7 +383,22 @@ editMachine(sn);
 },500);
 }
 
-};  
+};
+function addLog(sn){
+
+let txt = document.getElementById("new_log").value.trim();
+if(!txt) return;
+
+let time = new Date().toLocaleString();
+
+data[sn].issues.push(time + " - " + txt);
+
+document.getElementById("new_log").value = "";
+
+saveData();
+render();
+
+}  
 </script>
 
 </body>
