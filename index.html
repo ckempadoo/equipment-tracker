@@ -31,7 +31,6 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
 <div class="login-box">
 <h2>Direct Mail Depot</h2>
@@ -41,7 +40,6 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 </div>
 </div>
 
-<!-- APP -->
 <div id="app" class="container" style="display:none;">
 
 <h2>DMD Equipment Dashboard</h2>
@@ -79,94 +77,86 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 
 <div id="list"></div>
 
-<div style="text-align:center;margin-top:20px;font-size:12px;color:#777;">
-© Clifford Kempadoo
-</div>
-
 </div>
 
 <script>
 
+let data = {};
+
 // LOGIN
 function login(){
+let u=document.getElementById("user").value.trim();
+let p=document.getElementById("pass").value.trim();
 
-let u = document.getElementById("user").value.trim();
-let p = document.getElementById("pass").value.trim();
-
-if(u === "Cliff" && p === "DMD2026*"){
-
-loadData(); // ✅ LOAD SAVED DATA HERE
-
+if(u==="Cliff" && p==="DMD2026*"){
+loadData();
 document.getElementById("login").style.display="none";
 document.getElementById("app").style.display="block";
-
 render();
-
 }else{
 alert("Wrong login");
 }
-
 }
-// DATA
-let data = {
 
-"DI001": {name:"SCREEN Truepress Jet520HD 1",serial:"DI001",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
-"DI002": {name:"SCREEN Truepress Jet520HD 2",serial:"DI002",type:"Screen Inkjet HD520 Digital Press",issues:[],next:""},
+// LOAD/SAVE
+function saveData(){
+localStorage.setItem("dmd_machines", JSON.stringify(data));
+}
 
-"HP001": {name:"HP Indigo Digital Press",serial:"HP001",type:"HP Indigo Digital Press",issues:[],next:""},
-
-"LA001": {name:"Océ VarioStream 7450 #1",serial:"LA001",type:"Laser",issues:[],next:""},
-"LA002": {name:"Océ VarioStream 7450 #2",serial:"LA002",type:"Laser",issues:[],next:""},
-"LA003": {name:"Océ VarioStream 7450 #3",serial:"LA003",type:"Laser",issues:[],next:""},
-"LA004": {name:"Océ VarioStream 7450 #4",serial:"LA004",type:"Laser",issues:[],next:""},
-
-"IN001": {name:"MCS Hawk",serial:"IN001",type:"Inkjet",issues:[],next:""},
-"IN002": {name:"Videojet 4320 #1",serial:"IN002",type:"Inkjet",issues:[],next:""},
-
-"INS001": {name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
-"INS002": {name:"Flowmaster RS Inserter",serial:"INS002",type:"Inserting",issues:[],next:""},
-
-"BD001": {name:"Baum Folder 1",serial:"BD001",type:"Bindery",issues:[],next:""},
-
-"AF001": {name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
-
+function loadData(){
+let saved=localStorage.getItem("dmd_machines");
+if(saved){
+data=JSON.parse(saved);
+}else{
+// DEFAULT DATA (only first time)
+data={
+"INS001":{name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
+"BD001":{name:"Baum Folder",serial:"BD001",type:"Bindery",issues:[],next:""},
+"AF001":{name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
 };
+}
+}
 
 // ADD
-function normalizeType(t){
+function addMachine(){
+let name=document.getElementById("name").value.trim();
+let serial=document.getElementById("serial").value.trim();
+let type=document.getElementById("category").value;
+let date=document.getElementById("date").value;
 
-t = (t || "").toLowerCase().trim();
-
-if(t.includes("screen")) return "Screen Inkjet HD520 Digital Press";
-if(t.includes("hp")) return "HP Indigo Digital Press";
-if(t.includes("laser")) return "Laser";
-if(t.includes("inkjet")) return "Inkjet";
-if(t.includes("insert")) return "Inserting";
-if(t.includes("bind")) return "Bindery";
-if(t.includes("affix")) return "Affixing";
-
-return "Other";
+if(!name||!serial){
+alert("Enter Name + Serial");
+return;
 }
+
+if(data[serial]){
+alert("Serial exists");
+return;
+}
+
+data[serial]={name,serial,type,issues:[],next:date};
+
+saveData();
+render();
+}
+
+// DELETE
+function deleteMachine(sn){
+if(confirm("Delete?")){
+delete data[sn];
+saveData();
+render();
+}
+}
+
 // RENDER
 function render(){
-
-let list = document.getElementById("list");
+let list=document.getElementById("list");
 list.innerHTML="";
 
-let overdue=0, soon=0, ok=0;
-
-let types=[
-"Screen Inkjet HD520 Digital Press",
-"HP Indigo Digital Press",
-"Laser",
-"Inkjet",
-"Inserting",
-"Bindery",
-"Affixing"
-];
+let types=["Screen Inkjet HD520 Digital Press","HP Indigo Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
 
 types.forEach(t=>{
-
 let wrap=document.createElement("div");
 let btn=document.createElement("button");
 btn.innerText=t;
@@ -177,135 +167,36 @@ content.className="content";
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
 Object.values(data).forEach(e=>{
+if(e.type!==t) return;
 
-if(!e || !e.type) return;
-
-// normalize type EXACTLY
-let cleanType = e.type.trim();
-
-// HARD match categories
-if(cleanType === "Screen Inkjet HD520 Digital Press" && t !== "Screen Inkjet HD520 Digital Press") return;
-if(cleanType === "HP Indigo Digital Press" && t !== "HP Indigo Digital Press") return;
-if(cleanType === "Laser" && t !== "Laser") return;
-if(cleanType === "Inkjet" && t !== "Inkjet") return;
-if(cleanType === "Inserting" && t !== "Inserting") return;
-if(cleanType === "Bindery" && t !== "Bindery") return;
-if(cleanType === "Affixing" && t !== "Affixing") return;
-
-// STATUS
-let d=e.next?(new Date(e.next)-new Date())/86400000:999;
-let status="OK",cl="ok";
-
-if(d<0){status="OVERDUE";cl="overdue";overdue++}
-else if(d<5){status="SOON";cl="soon";soon++}
-else{ok++}
-
-// CARD
 let div=document.createElement("div");
 div.className="card machine";
 
 div.innerHTML=`
-<b>${e.name} (${e.serial})</b><br>
-Serial #: ${e.serial}<br>
-<span class="status ${cl}">${status}</span><br>
-
-<button onclick="editMachine('${e.serial}')">Edit</button>
+<b>${e.name}</b><br>
+Serial: ${e.serial}<br>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
-<button onclick="showQR('${e.serial}')">QR</button>
-
-${(e.issues||[]).join("<br>")}
 `;
 
 content.appendChild(div);
-
 });
 
 wrap.appendChild(btn);
 wrap.appendChild(content);
 list.appendChild(wrap);
-
 });
-
-document.getElementById("overdue").innerText="Overdue: "+overdue;
-document.getElementById("soon").innerText="Due Soon: "+soon;
-document.getElementById("ok").innerText="OK: "+ok;
-
-}
-
-// EDIT
-function editMachine(sn){
-
-let e = data[sn];
-
-let panel = document.createElement("div");
-panel.style = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;width:300px;z-index:9999;";
-
-panel.innerHTML = `
-<h3>Edit</h3>
-
-<input id="e_name" value="${e.name}">
-<input id="e_serial" value="${e.serial}">
-
-<select id="e_type">
-<option ${e.type==="Screen Inkjet HD520 Digital Press"?"selected":""}>Screen Inkjet HD520 Digital Press</option>
-<option ${e.type==="HP Indigo Digital Press"?"selected":""}>HP Indigo Digital Press</option>
-<option ${e.type==="Laser"?"selected":""}>Laser</option>
-<option ${e.type==="Inkjet"?"selected":""}>Inkjet</option>
-<option ${e.type==="Inserting"?"selected":""}>Inserting</option>
-<option ${e.type==="Bindery"?"selected":""}>Bindery</option>
-<option ${e.type==="Affixing"?"selected":""}>Affixing</option>
-</select>
-
-<input id="e_date" type="date" value="${e.next||""}">
-
-<textarea id="e_logs">${(e.issues||[]).join("\\n")}</textarea>
-
-<input id="new_log" placeholder="Add new log">
-<button onclick="addLog('${sn}')">Add Log</button>
-
-<button onclick="saveEdit('${sn}')">Save</button>
-<button onclick="deleteMachine('${sn}')">Delete Machine</button>
-<button onclick="this.parentElement.remove()">Close</button>
-`;
-
-document.body.appendChild(panel);
-}
-
-// SAVE
-function saveEdit(old){
-
-let name=document.getElementById("e_name").value;
-let serial=document.getElementById("e_serial").value;
-let date=document.getElementById("e_date").value;
-let logs=document.getElementById("e_logs").value.split("\n");
-let type=document.getElementById("e_type").value;
-
-delete data[old];
-
-data[serial]={
-name,
-serial,
-type,
-issues:logs,
-next:date
-};
-
-document.querySelector("div[style*='z-index']").remove();
-saveData();  
-render();
-
 }
 
 // EXPORT
 function exportCSV(){
-let rows=[["Name","Serial","Type","Date"]];
+let rows=[["Name","Serial","Type"]];
 Object.values(data).forEach(e=>{
-rows.push([e.name,e.serial,e.type,e.next]);
+rows.push([e.name,e.serial,e.type]);
 });
 let csv=rows.map(r=>r.join(",")).join("\n");
 let a=document.createElement("a");
 a.href=URL.createObjectURL(new Blob([csv]));
-a.download="report.csv";
+a.download="machines.csv";
 a.click();
 }
 
@@ -313,99 +204,7 @@ a.click();
 function sendText(){
 window.location.href="sms:17325551234?body=Check machines";
 }
-function deleteMachine(sn){
 
-if(!data[sn]) return;
-
-if(confirm("Delete this machine?")){
-
-delete data[sn];
-saveData();  
-render();
-
-}
-
-}
-function addMachine(){
-
-let name = document.getElementById("name").value.trim();
-let serial = document.getElementById("serial").value.trim();
-let type = document.getElementById("category").value;
-let date = document.getElementById("date").value;
-
-if(name === "" || serial === ""){
-alert("Please enter Name and Serial");
-return;
-}
-
-// prevent duplicate serials
-if(data[serial]){
-alert("Serial already exists");
-return;
-}
-
-// save machine
-data[serial] = {
-name: name,
-serial: serial,
-type: type,
-issues: [],
-next: date
-};
-
-// clear fields
-document.getElementById("name").value="";
-document.getElementById("serial").value="";
-document.getElementById("date").value="";
-saveData();
-render();
-
-}
-function saveData(){
-localStorage.setItem("dmd_machines", JSON.stringify(data));
-}
-function loadData(){
-
-let saved = localStorage.getItem("dmd_machines");
-
-if(saved){
-data = JSON.parse(saved);
-}
-
-}
-window.onload = function(){
-
-let hash = location.hash;
-
-if(hash.includes("machine=")){
-let sn = hash.split("machine=")[1];
-
-loadData();
-render();
-
-setTimeout(()=>{
-if(data[sn]){
-editMachine(sn);
-}
-},500);
-}
-
-};
-function addLog(sn){
-
-let txt = document.getElementById("new_log").value.trim();
-if(!txt) return;
-
-let time = new Date().toLocaleString();
-
-data[sn].issues.push(time + " - " + txt);
-
-document.getElementById("new_log").value = "";
-
-saveData();
-render();
-
-}  
 </script>
 
 </body>
