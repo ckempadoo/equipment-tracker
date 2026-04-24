@@ -197,6 +197,22 @@ if(!name || !serial){
 alert("Name + Serial required");
 return;
 }
+
+// save updated
+data[serial] = {
+name,
+serial,
+type,
+issues: document.getElementById("e_logs").value.split("\n"),
+next: date
+};
+
+saveData();
+render();
+
+// close popup
+document.querySelector("div[style*='z-index']").remove();
+} 
 function addLog(sn){
 
 let txt = document.getElementById("new_log").value.trim();
@@ -222,22 +238,7 @@ saveData();
 }
 // delete old entry
 delete data[oldSn];
-
-// save updated
-data[serial] = {
-name,
-serial,
-type,
-issues: document.getElementById("e_logs").value.split("\n"),
-next: date
-};
-
-saveData();
-render();
-
-// close popup
-document.querySelector("div[style*='z-index']").remove();
-}  
+  
 // RENDER
 function render(){
 let list=document.getElementById("list");
