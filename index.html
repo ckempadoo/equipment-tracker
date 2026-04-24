@@ -174,6 +174,12 @@ panel.innerHTML = `
 
 <input id="e_date" type="date" value="${e.next||""}">
 
+<h4>Logs</h4>
+<textarea id="e_logs">${(e.issues||[]).join("\n")}</textarea>
+
+<input id="new_log" placeholder="Add new log">
+<button onclick="addLog('${sn}')">Add Log</button>
+
 <button onclick="saveEdit('${sn}')">Save</button>
 <button onclick="this.parentElement.remove()">Close</button>
 `;
@@ -191,7 +197,29 @@ if(!name || !serial){
 alert("Name + Serial required");
 return;
 }
+function addLog(sn){
 
+let txt = document.getElementById("new_log").value.trim();
+if(!txt) return;
+
+let time = new Date().toLocaleString();
+
+// make sure issues exists
+if(!data[sn].issues){
+data[sn].issues = [];
+}
+
+// add log with timestamp
+data[sn].issues.push(time + " - " + txt);
+
+// update textarea live
+document.getElementById("e_logs").value = data[sn].issues.join("\n");
+
+// clear input
+document.getElementById("new_log").value = "";
+
+saveData();
+}
 // delete old entry
 delete data[oldSn];
 
