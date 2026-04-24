@@ -45,9 +45,9 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <h2>DMD Equipment Dashboard</h2>
 
 <div id="summary">
-<div id="overdue">Overdue: 0</div>
-<div id="soon">Due Soon: 0</div>
-<div id="ok">OK: 0</div>
+<div id="overdue" onclick="setFilter('OVERDUE')">Overdue: 0</div>
+<div id="soon" onclick="setFilter('SOON')">Due Soon: 0</div>
+<div id="ok" onclick="setFilter('OK')">OK: 0</div>
 </div>
 
 <div class="card">
@@ -82,7 +82,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <script>
 
 let data = {};
-
+let currentFilter = "ALL";
 // LOGIN
 function login(){
 let u=document.getElementById("user").value.trim();
@@ -257,6 +257,15 @@ content.className="content";
 btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
 
 Object.values(data).forEach(e=>{
+let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
+
+let status = "OK";
+
+if(d < 0) status = "OVERDUE";
+else if(d < 5) status = "SOON";
+
+// 👉 FILTER (ADD THIS TOO)
+if(currentFilter !== "ALL" && status !== currentFilter) return;  
 if(e.type!==t) return;
 
 let div=document.createElement("div");
@@ -265,6 +274,11 @@ div.className="card machine";
 div.innerHTML=`
 <b>${e.name}</b><br>
 Serial: ${e.serial}<br>
+
+<div style="margin:5px 0;font-size:12px;color:#555;">
+${(e.issues||[]).slice(-3).reverse().map(l=>"• "+l).join("<br>")}
+</div>
+
 <button onclick="editMachine('${e.serial}')">Edit</button>
 <button onclick="deleteMachine('${e.serial}')">Delete</button>
 `;
@@ -295,7 +309,11 @@ a.click();
 function sendText(){
 window.location.href="sms:17325551234?body=Check machines";
 }
-
+function setFilter(type){
+currentFilter = type;
+let d=e.next?(new Date(e.next)-new Date())/86400000:999;  
+render();
+}
 </script>
 
 </body>
