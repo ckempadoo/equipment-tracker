@@ -241,37 +241,64 @@ delete data[oldSn];
   
 // RENDER
 function render(){
-let list=document.getElementById("list");
-list.innerHTML="";
 
-let types=["Screen Inkjet HD520 Digital Press","HP Indigo Digital Press","Laser","Inkjet","Inserting","Bindery","Affixing"];
+let list = document.getElementById("list");
+list.innerHTML = "";
+
+// ✅ ADD COUNTERS
+let overdue = 0, soon = 0, ok = 0;
+
+let types = [
+"Screen Inkjet HD520 Digital Press",
+"HP Indigo Digital Press",
+"Laser",
+"Inkjet",
+"Inserting",
+"Bindery",
+"Affixing"
+];
 
 types.forEach(t=>{
-let wrap=document.createElement("div");
-let btn=document.createElement("button");
-btn.innerText=t;
 
-let content=document.createElement("div");
-content.className="content";
+let wrap = document.createElement("div");
+let btn = document.createElement("button");
+btn.innerText = t;
 
-btn.onclick=()=>content.style.display=content.style.display==="block"?"none":"block";
+let content = document.createElement("div");
+content.className = "content";
+
+btn.onclick = ()=> content.style.display =
+content.style.display === "block" ? "none" : "block";
 
 Object.values(data).forEach(e=>{
+
 let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
 
 let status = "OK";
 
-if(d < 0) status = "OVERDUE";
-else if(d < 5) status = "SOON";
+// ✅ COUNT + STATUS
+if(d < 0){
+status = "OVERDUE";
+overdue++;
+}
+else if(d < 5){
+status = "SOON";
+soon++;
+}
+else{
+ok++;
+}
 
-// 👉 FILTER (ADD THIS TOO)
-if(currentFilter !== "ALL" && status !== currentFilter) return;  
-if(e.type!==t) return;
+// ✅ FILTER
+if(currentFilter !== "ALL" && status !== currentFilter) return;
 
-let div=document.createElement("div");
-div.className="card machine";
+// ✅ FIX CATEGORY MATCH (IMPORTANT)
+if((e.type || "").trim() !== t) return;
 
-div.innerHTML=`
+let div = document.createElement("div");
+div.className = "card machine";
+
+div.innerHTML = `
 <b>${e.name}</b><br>
 Serial: ${e.serial}<br>
 <span class="status ${status.toLowerCase()}">${status}</span><br>
@@ -285,12 +312,20 @@ ${(e.issues||[]).slice(-3).reverse().map(l=>"• "+l).join("<br>")}
 `;
 
 content.appendChild(div);
+
 });
 
 wrap.appendChild(btn);
 wrap.appendChild(content);
 list.appendChild(wrap);
+
 });
+
+// ✅ UPDATE TOP SUMMARY
+document.getElementById("overdue").innerText = "Overdue: " + overdue;
+document.getElementById("soon").innerText = "Due Soon: " + soon;
+document.getElementById("ok").innerText = "OK: " + ok;
+
 }
 
 // EXPORT
