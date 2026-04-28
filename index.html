@@ -247,7 +247,15 @@ list.innerHTML = "";
 
 // ✅ ADD COUNTERS
 let overdue = 0, soon = 0, ok = 0;
+Object.values(data).forEach(e=>{
 
+let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
+
+if(d < 0) overdue++;
+else if(d < 5) soon++;
+else ok++;
+
+});
 let types = [
 "Screen Inkjet HD520 Digital Press",
 "HP Indigo Digital Press",
