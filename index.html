@@ -23,6 +23,22 @@ button {
   position: relative;
   z-index: 10;
 }
+#summary {
+  position: relative;
+  z-index: 10;
+}
+
+button {
+  position: relative;
+  z-index: 10;
+}
+
+.content {
+  display: none;
+  padding: 10px;
+  position: relative;
+  z-index: 1;
+}  
 .card {border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:10px;}
 .machine {border-left:5px solid #3498db;}
 
@@ -58,7 +74,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 <div id="ok" onclick="setFilter('OK')">OK: 0</div>
 </div>
 <button onclick="setFilter('ALL')">Show All</button>
-  
+<button onclick="alert('CLICK WORKS')">TEST</button>  
 <div class="card">
 <h3>Add Machine</h3>
 
