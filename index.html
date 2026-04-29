@@ -14,7 +14,15 @@ body {margin:0;font-family:'Segoe UI';background:linear-gradient(135deg,#2c3e50,
 #summary {display:flex;gap:10px;margin-bottom:15px;}
 #summary div {flex:1;padding:15px;border-radius:10px;color:#fff;text-align:center;font-weight:bold;}
 #overdue{background:#e74c3c;} #soon{background:#f39c12;} #ok{background:#27ae60;}
+#summary {
+  position: relative;
+  z-index: 10;
+}
 
+button {
+  position: relative;
+  z-index: 10;
+}
 .card {border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:10px;}
 .machine {border-left:5px solid #3498db;}
 
