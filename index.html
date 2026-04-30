@@ -276,12 +276,17 @@ Object.values(data).forEach(e=>{
 
 let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
 
-if(d < 0) overdue++;
-else if(d < 5) soon++;
-else ok++;
+let status = "OK";
 
+if(d < 0) status = "OVERDUE";
+else if(d < 5) status = "SOON";
+// FILTER (THIS IS WHAT MAKES BUTTONS WORK)
+  
+if(currentFilter !== "ALL" && status !== currentFilter) return;
 });
-let types = [
+  
+if(e.type !== t) return;
+  
 "Screen Inkjet HD520 Digital Press",
 "HP Indigo Digital Press",
 "Laser",
