@@ -110,17 +110,30 @@ let data = {};
 let currentFilter = "ALL";
 // LOGIN
 function login(){
-let u=document.getElementById("user").value.trim();
-let p=document.getElementById("pass").value.trim();
 
-if(u==="Cliff" && p==="DMD2026*"){
+try {
+
+let u = document.getElementById("user").value.trim();
+let p = document.getElementById("pass").value.trim();
+
+if(u === "Cliff" && p === "DMD2026*"){
+
 loadData();
-document.getElementById("login").style.display="none";
-document.getElementById("app").style.display="block";
+
+document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+
 render();
+
 }else{
 alert("Wrong login");
 }
+
+} catch(e){
+alert("Login error: " + e.message);
+console.log(e);
+}
+
 }
 
 // LOAD/SAVE
