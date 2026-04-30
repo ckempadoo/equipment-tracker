@@ -287,7 +287,6 @@ list.innerHTML = "";
 let overdue = 0, soon = 0, ok = 0;
 Object.values(data).forEach(e=>{
 
-let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
 
 let status = "OK";
 
