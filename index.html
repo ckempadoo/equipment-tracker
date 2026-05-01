@@ -291,8 +291,17 @@ let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
   
 let status = "OK";
 
-if(d < 0) status = "OVERDUE";
-else if(d < 5) status = "SOON";
+if(d < 0){
+  status = "OVERDUE";
+  overdue++;
+}
+else if(d < 5){
+  status = "SOON";
+  soon++;
+}
+else{
+  ok++;
+}
   
 // FILTER (THIS IS WHAT MAKES BUTTONS WORK)
   
