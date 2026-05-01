@@ -223,29 +223,38 @@ panel.innerHTML = `
 
 document.body.appendChild(panel);
 }
-function saveEdit(oldSn){
+function saveEdit(old){
 
 let name = document.getElementById("e_name").value.trim();
 let serial = document.getElementById("e_serial").value.trim();
-let type = document.getElementById("e_type").value;
 let date = document.getElementById("e_date").value;
+let logs = document.getElementById("e_logs").value.split("\n");
+let type = document.getElementById("e_type").value;
 
-if(!name || !serial){
-alert("Name + Serial required");
-return;
+// 🚫 prevent duplicate serial
+if(serial !== old && data[serial]){
+  alert("Serial already exists");
+  return;
 }
 
-// save updated
+// 🔥 remove old record
+delete data[old];
+
+// 🔥 save updated record
 data[serial] = {
-name,
-serial,
-type,
-issues: document.getElementById("e_logs").value.split("\n"),
-next: date
+  name,
+  serial,
+  type,
+  issues: logs,
+  next: date
 };
+
+// close popup
+document.querySelector("div[style*='z-index']").remove();
 
 saveData();
 render();
+}
 
 // close popup
 document.querySelector("div[style*='z-index']").remove();
