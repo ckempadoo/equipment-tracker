@@ -242,24 +242,22 @@ delete data[old];
 
 // 🔥 save updated record
 data[serial] = {
-  name,
-  serial,
-  type,
+  name: name,
+  serial: serial,
+  type: type,
   issues: logs,
   next: date
 };
 
-// close popup
-document.querySelector("div[style*='z-index']").remove();
+// ✅ CLOSE POPUP
+let popup = document.querySelector("div[style*='z-index']");
+if(popup) popup.remove();
 
+// ✅ SAVE + RELOAD
 saveData();
 render();
-}
 
-// close popup
-document.querySelector("div[style*='z-index']").remove();
-} 
-function addLog(sn){
+}function addLog(sn){
 
 let txt = document.getElementById("new_log").value.trim();
 if(!txt) return;
