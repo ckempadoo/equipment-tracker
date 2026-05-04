@@ -103,26 +103,7 @@ input,select,textarea {width:100%;padding:8px;margin-top:5px;box-sizing:border-b
 
 </div>
 
-<script type="module">
-
-// FIREBASE
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBhkaJGgEvon9hC5y5LMXRMf01iaIL0mkU",
-  authDomain: "dmd-equipment-tracker.firebaseapp.com",
-  projectId: "dmd-equipment-tracker",
-  storageBucket: "dmd-equipment-tracker.firebasestorage.app",
-  messagingSenderId: "649433121134",
-  appId: "1:649433121134:web:99a0d2b15582627753417f",
-  measurementId: "G-Z8XBMNXYJL"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// 👇 your existing code continues below...  
+<script>
 
 let data = {};
 let currentFilter = "ALL";
