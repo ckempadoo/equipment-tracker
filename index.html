@@ -123,24 +123,24 @@ const db = firebase.firestore();
 let data = {};
 let currentFilter = "ALL";
 // LOGIN
-function login(){
-
-try {
+async function login(){
 
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
 if(u === "Cliff" && p === "DMD2026*"){
 
-loadData();
+  await loadData(); // 👈 keep this
 
-document.getElementById("login").style.display = "none";
-document.getElementById("app").style.display = "block";
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
 
-render();
+  render();
 
 }else{
-alert("Wrong login");
+  alert("Wrong login");
+}
+
 }
 
 } catch(e){
@@ -155,11 +155,22 @@ function saveData(){
 localStorage.setItem("dmd_machines", JSON.stringify(data));
 }
 
-function loadData(){
-let saved=localStorage.getItem("dmd_machines");
-if(saved){
-data=JSON.parse(saved);
-}else{
+async function loadData(){
+
+let snapshot = await db.collection("machines").get();
+
+if(snapshot.empty){
+  console.log("No cloud data yet — using local data");
+  return;
+}
+
+data = {};
+
+snapshot.forEach(doc=>{
+  data[doc.id] = doc.data();
+});
+
+}
 // DEFAULT DATA (only first time)
 data={
 "INS001":{name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
