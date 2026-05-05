@@ -158,27 +158,45 @@ localStorage.setItem("dmd_machines", JSON.stringify(data));
 
 async function loadData(){
 
+try{
+
 let snapshot = await db.collection("machines").get();
 
-if(snapshot.empty){
-  console.log("No cloud data yet — using local data");
-  return;
+if(!snapshot.empty){
+
+  data = {};
+
+  snapshot.forEach(doc=>{
+    data[doc.id] = doc.data();
+  });
+
+  console.log("Loaded from Firebase");
+
+}else{
+
+  console.log("No cloud data — using defaults");
+
+  data = {
+    "INS001":{name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
+    "BD001":{name:"Baum Folder",serial:"BD001",type:"Bindery",issues:[],next:""},
+    "AF001":{name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
+  };
+
 }
 
-data = {};
+}catch(e){
 
-snapshot.forEach(doc=>{
-  data[doc.id] = doc.data();
-});
+console.log("Firebase failed — using defaults");
 
-}
-// DEFAULT DATA (only first time)
-data={
-"INS001":{name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
-"BD001":{name:"Baum Folder",serial:"BD001",type:"Bindery",issues:[],next:""},
-"AF001":{name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
+data = {
+  "INS001":{name:"MSE Inserter 1",serial:"INS001",type:"Inserting",issues:[],next:""},
+  "BD001":{name:"Baum Folder",serial:"BD001",type:"Bindery",issues:[],next:""},
+  "AF001":{name:"Affixer System",serial:"AF001",type:"Affixing",issues:[],next:""}
 };
 
+}
+
+}
 // ADD
 function addMachine(){
 let name=document.getElementById("name").value.trim();
