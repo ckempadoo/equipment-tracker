@@ -123,6 +123,9 @@ const db = firebase.firestore();
 let data = {};
 let currentFilter = "ALL";
 // LOGIN
+let currentFilter = "ALL";
+
+// LOGIN
 async function login(){
 
 try{
@@ -132,7 +135,7 @@ let p = document.getElementById("pass").value.trim();
 
 if(u === "Cliff" && p === "DMD2026*"){
 
-  await loadData(); // 🔥 MUST HAVE await
+  await loadData();
 
   document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "block";
@@ -146,13 +149,6 @@ if(u === "Cliff" && p === "DMD2026*"){
 }catch(e){
   alert("Login error: " + e.message);
   console.log(e);
-}
-
-}
-
-} catch(e){
-alert("Login error: " + e.message);
-console.log(e);
 }
 
 }
