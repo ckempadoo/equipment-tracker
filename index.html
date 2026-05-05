@@ -125,20 +125,27 @@ let currentFilter = "ALL";
 // LOGIN
 async function login(){
 
+try{
+
 let u = document.getElementById("user").value.trim();
 let p = document.getElementById("pass").value.trim();
 
 if(u === "Cliff" && p === "DMD2026*"){
 
-  await loadData(); // 👈 keep this
+  await loadData(); // 🔥 MUST HAVE await
 
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
 
   render();
 
 }else{
   alert("Wrong login");
+}
+
+}catch(e){
+  alert("Login error: " + e.message);
+  console.log(e);
 }
 
 }
