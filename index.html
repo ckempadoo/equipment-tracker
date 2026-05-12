@@ -395,7 +395,7 @@ status = "SOON";
 if(currentFilter !== "ALL" && status !== currentFilter) return;
 
 // ✅ FIX CATEGORY MATCH (IMPORTANT)
-if((e.type || "").trim() !== t) return;
+if((e.type || "").trim().toLowerCase() !== t.trim().toLowerCase()) return;
 
 let div = document.createElement("div");
 div.className = "card machine";
