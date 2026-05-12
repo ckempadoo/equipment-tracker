@@ -334,7 +334,29 @@ list.innerHTML = "";
 let overdue = 0, soon = 0, ok = 0;
 Object.values(data).forEach(e=>{
 
-let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;  
+let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999; 
+e.type = (e.type || "").trim();
+
+if(e.type.toLowerCase().includes("screen"))
+  e.type = "Screen Inkjet HD520 Digital Press";
+
+else if(e.type.toLowerCase().includes("hp"))
+  e.type = "HP Indigo Digital Press";
+
+else if(e.type.toLowerCase().includes("laser"))
+  e.type = "Laser";
+
+else if(e.type.toLowerCase().includes("inkjet"))
+  e.type = "Inkjet";
+
+else if(e.type.toLowerCase().includes("insert"))
+  e.type = "Inserting";
+
+else if(e.type.toLowerCase().includes("bind"))
+  e.type = "Bindery";
+
+else if(e.type.toLowerCase().includes("affix"))
+  e.type = "Affixing";  
   
 let status = "OK";
 
