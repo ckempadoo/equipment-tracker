@@ -421,7 +421,8 @@ types.forEach(t=>{
     if(currentFilter !== "ALL" && status !== currentFilter) return;
 
     // CATEGORY MATCH
-    if((e.type || "").trim() !== t) return;
+    // TEMP TEST
+    console.log("TYPE:", e.type, "TAB:", t);
 
     let div = document.createElement("div");
     div.className = "card machine";
