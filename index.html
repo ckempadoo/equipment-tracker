@@ -422,7 +422,7 @@ types.forEach(t=>{
 
     // CATEGORY MATCH
     // TEMP TEST
-    console.log("TYPE:", e.type, "TAB:", t);
+    if((e.type || "").trim() !== t) return;
 
     let div = document.createElement("div");
     div.className = "card machine";
