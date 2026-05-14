@@ -394,7 +394,8 @@ types.forEach(t=>{
   btn.innerText = t;
 
   let content = document.createElement("div");
-  .content{display:none;padding:10px;}
+  content.className = "content";
+  content.style.display = "block";
 
   btn.onclick = ()=>{
     content.style.display =
