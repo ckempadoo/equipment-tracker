@@ -330,50 +330,52 @@ function render(){
 let list = document.getElementById("list");
 list.innerHTML = "";
 
-// ✅ ADD COUNTERS
-let overdue = 0, soon = 0, ok = 0;
+// TOP COUNTERS
+let overdue = 0;
+let soon = 0;
+let ok = 0;
 
+// NORMALIZE + COUNT
 Object.values(data).forEach(e=>{
 
-let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
+  e.type = (e.type || "").trim();
 
-// ✅ normalize category names
-e.type = (e.type || "").trim();
+  if(e.type.toLowerCase().includes("screen"))
+    e.type = "Screen Inkjet HD520 Digital Press";
 
-if(e.type.toLowerCase().includes("screen"))
-  e.type = "Screen Inkjet HD520 Digital Press";
+  else if(e.type.toLowerCase().includes("hp"))
+    e.type = "HP Indigo Digital Press";
 
-else if(e.type.toLowerCase().includes("hp"))
-  e.type = "HP Indigo Digital Press";
+  else if(e.type.toLowerCase().includes("laser"))
+    e.type = "Laser";
 
-else if(e.type.toLowerCase().includes("laser"))
-  e.type = "Laser";
+  else if(e.type.toLowerCase().includes("inkjet"))
+    e.type = "Inkjet";
 
-else if(e.type.toLowerCase().includes("inkjet"))
-  e.type = "Inkjet";
+  else if(e.type.toLowerCase().includes("insert"))
+    e.type = "Inserting";
 
-else if(e.type.toLowerCase().includes("insert"))
-  e.type = "Inserting";
+  else if(e.type.toLowerCase().includes("bind"))
+    e.type = "Bindery";
 
-else if(e.type.toLowerCase().includes("bind"))
-  e.type = "Bindery";
+  else if(e.type.toLowerCase().includes("affix"))
+    e.type = "Affixing";
 
-else if(e.type.toLowerCase().includes("affix"))
-  e.type = "Affixing";
+  let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
 
-// ✅ counters only
-if(d < 0){
-  overdue++;
-}
-else if(d < 5){
-  soon++;
-}
-else{
-  ok++;
-}
+  if(d < 0){
+    overdue++;
+  }
+  else if(d < 5){
+    soon++;
+  }
+  else{
+    ok++;
+  }
 
 });
-  
+
+// MACHINE TABS
 let types = [
 "Screen Inkjet HD520 Digital Press",
 "HP Indigo Digital Press",
@@ -387,14 +389,17 @@ let types = [
 types.forEach(t=>{
 
   let wrap = document.createElement("div");
+
   let btn = document.createElement("button");
   btn.innerText = t;
 
   let content = document.createElement("div");
   content.className = "content";
 
-  btn.onclick = ()=> content.style.display =
-  content.style.display === "block" ? "none" : "block";
+  btn.onclick = ()=>{
+    content.style.display =
+    content.style.display === "block" ? "none" : "block";
+  };
 
   Object.values(data).forEach(e=>{
 
@@ -409,9 +414,11 @@ types.forEach(t=>{
       status = "SOON";
     }
 
+    // FILTER BUTTONS
     if(currentFilter !== "ALL" && status !== currentFilter) return;
 
-    if((e.type || "").trim().toLowerCase() !== t.trim().toLowerCase()) return;
+    // CATEGORY MATCH
+    if((e.type || "").trim() !== t) return;
 
     let div = document.createElement("div");
     div.className = "card machine";
@@ -419,7 +426,18 @@ types.forEach(t=>{
     div.innerHTML = `
     <b>${e.name}</b><br>
     Serial: ${e.serial}<br>
-    <span class="status ${status.toLowerCase()}">${status}</span><br>
+
+    <span class="status ${status.toLowerCase()}">
+      ${status}
+    </span><br>
+
+    <div style="margin:5px 0;font-size:12px;color:#555;">
+      ${(e.issues||[])
+        .slice(-3)
+        .reverse()
+        .map(l=>`<div style="padding:3px 0;border-bottom:1px solid #eee;">• ${l}</div>`)
+        .join("")}
+    </div>
 
     <button onclick="editMachine('${e.serial}')">Edit</button>
     <button onclick="deleteMachine('${e.serial}')">Delete</button>
@@ -431,16 +449,22 @@ types.forEach(t=>{
 
   wrap.appendChild(btn);
   wrap.appendChild(content);
+
   list.appendChild(wrap);
 
 });
-// ✅ UPDATE TOP SUMMARY
-document.getElementById("overdue").innerText = "Overdue: " + overdue;
-document.getElementById("soon").innerText = "Due Soon: " + soon;
-document.getElementById("ok").innerText = "OK: " + ok;
+
+// TOP SUMMARY
+document.getElementById("overdue").innerText =
+"Overdue: " + overdue;
+
+document.getElementById("soon").innerText =
+"Due Soon: " + soon;
+
+document.getElementById("ok").innerText =
+"OK: " + ok;
 
 }
-
 // EXPORT
 function exportCSV(){
 let rows=[["Name","Serial","Type"]];
