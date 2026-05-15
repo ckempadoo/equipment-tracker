@@ -152,8 +152,18 @@ if(u === "Cliff" && p === "DMD2026*"){
 }
 
 // LOAD/SAVE
-function saveData(){
+async function saveData(){
+
 localStorage.setItem("dmd_machines", JSON.stringify(data));
+
+for(let key in data){
+
+  await db.collection("machines").doc(key).set(data[key]);
+
+}
+
+console.log("Saved to Firebase");
+
 }
 
 async function loadData(){
@@ -198,7 +208,7 @@ data = {
 
 }
 // ADD
-function addMachine(){
+async function addMachine(){
 let name=document.getElementById("name").value.trim();
 let serial=document.getElementById("serial").value.trim();
 let type=document.getElementById("category").value;
@@ -216,15 +226,15 @@ return;
 
 data[serial]={name,serial,type,issues:[],next:date};
 
-saveData();
+await saveData();
 render();
 }
 
 // DELETE
-function deleteMachine(sn){
+async function deleteMachine(sn){
 if(confirm("Delete?")){
 delete data[sn];
-saveData();
+await saveData();
 render();
 }
 }
@@ -266,7 +276,7 @@ panel.innerHTML = `
 
 document.body.appendChild(panel);
 }
-function saveEdit(old){
+async function saveEdit(old){
 
 let name = document.getElementById("e_name").value.trim();
 let serial = document.getElementById("e_serial").value.trim();
@@ -302,7 +312,7 @@ render();
 
 }
 
-function addLog(sn){
+async function addLog(sn){
 
 let txt = document.getElementById("new_log").value.trim();
 if(!txt) return;
