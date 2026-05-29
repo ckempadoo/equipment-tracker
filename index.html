@@ -348,45 +348,8 @@ let soon = 0;
 let ok = 0;
 
 // NORMALIZE + COUNT
-Object.values(data).forEach(e=>{
-
-  e.type = (e.type || "").trim();
-
-  if(e.type.toLowerCase().includes("screen"))
-    e.type = "Screen Inkjet HD520 Digital Press";
-
-  else if(e.type.toLowerCase().includes("hp"))
-    e.type = "HP Indigo Digital Press";
-
-  else if(e.type.toLowerCase().includes("laser"))
-    e.type = "Laser";
-
-  else if(e.type.toLowerCase().includes("inkjet"))
-    e.type = "Inkjet";
-
-  else if(e.type.toLowerCase().includes("insert"))
-    e.type = "Inserting";
-
-  else if(e.type.toLowerCase().includes("bind"))
-    e.type = "Bindery";
-
-  else if(e.type.toLowerCase().includes("affix"))
-    e.type = "Affixing";
-
-  let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
-
-  if(d < 0){
-    overdue++;
-  }
-  else if(d < 5){
-    soon++;
-  }
-  else{
-    ok++;
-  }
-
-});
-
+e.type = (e.type || "").trim();
+  
 // MACHINE TABS
 let types = [
 "Screen Inkjet HD520 Digital Press",
