@@ -347,8 +347,24 @@ let overdue = 0;
 let soon = 0;
 let ok = 0;
 
-// NORMALIZE + COUNT
-e.type = (e.type || "").trim();
+// COUNT
+Object.values(data).forEach(e=>{
+
+  e.type = (e.type || "").trim();
+
+  let d = e.next ? (new Date(e.next) - new Date()) / 86400000 : 999;
+
+  if(d < 0){
+    overdue++;
+  }
+  else if(d < 5){
+    soon++;
+  }
+  else{
+    ok++;
+  }
+
+});
   
 // MACHINE TABS
 let types = [
